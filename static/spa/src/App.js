@@ -1,4 +1,7 @@
 import React, { useEffect, useState, Fragment } from 'react';
+import { invoke } from '@forge/bridge';
+
+// Atlaskit
 import { LoadingButton as Button } from '@atlaskit/button';
 import CloseIcon from '@atlaskit/icon/glyph/editor/close';
 import TrashIcon from '@atlaskit/icon/glyph/editor/remove';
@@ -6,106 +9,12 @@ import { Checkbox } from '@atlaskit/checkbox';
 import Textfield from '@atlaskit/textfield';
 import Lozenge from '@atlaskit/lozenge';
 import Spinner from '@atlaskit/spinner';
-import { invoke } from '@forge/bridge';
-import styled from 'styled-components';
 
-const Card = styled.div`
-  position: relative;
-  text-decoration: none;
-  background: rgb(255, 255, 255);
-  box-shadow: rgba(9, 30, 66, 0.1) 0px 1px 1px, rgba(9, 30, 66, 0.31) 0px 0px 1px;
-  border-radius: 4px;
-  margin: 4px 1px;
-  height: calc(100vh - 10px);
-  box-sizing: border-box;
-`;
-
-const Status = styled.span`
-  float: right;
-  align-items: center;
-  display: inline-flex;
-  margin-top: -24px;
-
-  & > span {
-    margin-left: 8px;
-  }
-`;
-
-const Form = styled.form`
-  padding: 8px 0;
-`;
-
-const LoadingContainer = styled.div`
-  justify-content: center;
-  display: flex;
-  align-items: center;
-  height: 100%;
-`;
-
-const Row = styled.div`
-  transition: .3s ease all;
-  padding: 8px;
-  border-bottom: 1px solid #efefef;
-
-  button {
-    opacity: 0;
-    transition: .2s ease all;
-    margin-left: 8px;
-  }
-
-  &:hover {
-    button {
-      opacity: 1;
-    }
-  }
-
-  ${props => `
-    ${props.isChecked ? 'text-decoration: line-through;' : ''}
-    ${props.isCompact ? 'padding: 0 6px;' : ''}
-    ${props.isCompact ? 'border: 0;' : ''}
-  `}
-`;
-
-const IconContainer = styled.span`
-  position: relative;
-  height: 20px;
-  width: 24px;
-  align-self: center;
-  display: inline-flex;
-  flex-wrap: nowrap;
-  max-width: 100%;
-  position: relative;
-`;
-
-const Icon = styled.span`
-  position: absolute;
-`;
-
-const ScrollContainer = styled.div`
-  overflow: auto;
-  max-height: calc(100% - 40px);
-`;
-
-const SummaryFooter = styled.div`
-  width: 100%;
-  height: 40px;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  background: #f7f7f7;
-  border-top: 1px solid #eaeaea;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const SummaryCount = styled.div`
-  padding: 0 12px;
-`;
-
-const SummaryActions = styled.div`
-  padding: 8px;
-`;
+// Custom Styles
+import {
+  Card, Row, Icon, IconContainer, Status, SummaryActions, SummaryCount, SummaryFooter,
+  ScrollContainer, Form, LoadingContainer
+} from './Styles';
 
 function App() {
   const [data, setData] = useState(null);
@@ -118,7 +27,7 @@ function App() {
     setIsFetched(true);
     setTimeout(() => {
       invoke('get-all').then(setData);
-    }, 2000)
+    }, 500)
   }
 
   const createTodo = async (label) => {
