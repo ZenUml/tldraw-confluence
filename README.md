@@ -1,8 +1,10 @@
-# Forge Todo App - Custom UI
+# Forge Custom UI Todo App
 
 This project contains a Forge custom UI app written in React that displays in a Jira issue panel. 
 
 See [developer.atlassian.com/platform/forge/](https://developer.atlassian.com/platform/forge) for documentation and tutorials explaining Forge.
+
+![Todo app for Jira](./screenshot.png "Todo app for Jira")
 
 ## Requirements
 

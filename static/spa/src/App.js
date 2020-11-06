@@ -25,7 +25,6 @@ function App() {
 
   if (!isFetched) {
     setIsFetched(true);
-
     invoke('get-all').then(setTodos);
   }
 
@@ -133,19 +132,6 @@ function App() {
     </Fragment>
   );
 
-  const NewTodo = () => (
-    <Row isCompact>
-      <Form onSubmit={onSubmit}>
-        <Textfield
-          appearance="subtle"
-          placeholder="Add a todo +"
-          value={input}
-          onChange={({ target }) => setInput(target.value)}
-        />
-      </Form>
-    </Row>
-  );
-
   const DeleteAll = () => isDeleteAllShowing ? (
     <Button
       appearance="danger"
@@ -170,20 +156,27 @@ function App() {
 
   return (
     <Card>
-      <Fragment>
-        <ScrollContainer>
-          <Rows />
-          <NewTodo />
-        </ScrollContainer>
-        <SummaryFooter>
-          <SummaryCount>
-            <CompletedLozenge />
-          </SummaryCount>
-          <SummaryActions>
-            <DeleteAll />
-          </SummaryActions>
-        </SummaryFooter>
-      </Fragment>
+      <ScrollContainer>
+        <Rows />
+        <Row isCompact>
+          <Form onSubmit={onSubmit}>
+            <Textfield
+              appearance="subtle"
+              placeholder="Add a todo +"
+              value={input}
+              onChange={({ target }) => setInput(target.value)}
+            />
+          </Form>
+        </Row>
+      </ScrollContainer>
+      <SummaryFooter>
+        <SummaryCount>
+          <CompletedLozenge />
+        </SummaryCount>
+        <SummaryActions>
+          <DeleteAll />
+        </SummaryActions>
+      </SummaryFooter>
     </Card>
   );
 }
