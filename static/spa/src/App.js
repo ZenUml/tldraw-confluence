@@ -3,9 +3,9 @@ import { invoke } from '@forge/bridge';
 
 // Atlaskit
 import { LoadingButton as Button } from '@atlaskit/button';
+import { Checkbox } from '@atlaskit/checkbox';
 import CloseIcon from '@atlaskit/icon/glyph/editor/close';
 import TrashIcon from '@atlaskit/icon/glyph/editor/remove';
-import { Checkbox } from '@atlaskit/checkbox';
 import Textfield from '@atlaskit/textfield';
 import Lozenge from '@atlaskit/lozenge';
 import Spinner from '@atlaskit/spinner';
@@ -17,7 +17,7 @@ import {
 } from './Styles';
 
 function App() {
-  const [data, setData] = useState(null);
+  const [todos, setTodos] = useState(null);
   const [input, setInput] = useState('');
   const [isFetched, setIsFetched] = useState(false);
   const [isDeleteAllShowing, setDeleteAllShowing] = useState(false);
@@ -25,21 +25,19 @@ function App() {
 
   if (!isFetched) {
     setIsFetched(true);
-    setTimeout(() => {
-      invoke('get-all').then(setData);
-    }, 500)
+
+    invoke('get-all').then(setTodos);
   }
 
   const createTodo = async (label) => {
-    const newTodo = { label, isChecked: false };
-    const newData = [...data, { ...newTodo, isSaving: true }];
+    const newTodoList = [...todos, { label, isChecked: false, isSaving: true }];
 
-    setData(newData);
+    setTodos(newTodoList);
   }
 
-  const toggleTodo = ({ id }) => {
-    setData(
-      data.map(todo => {
+  const toggleTodo = (id) => {
+    setTodos(
+      todos.map(todo => {
         if (todo.id === id) {
           return { ...todo, isChecked: !todo.isChecked, isSaving: true };
         }
@@ -48,9 +46,9 @@ function App() {
     )
   }
 
-  const deleteTodo = ({ id }) => {
-    setData(
-      data.map(todo => {
+  const deleteTodo = (id) => {
+    setTodos(
+      todos.map(todo => {
         if (todo.id === id) {
           return { ...todo, isDeleting: true };
         }
@@ -64,17 +62,23 @@ function App() {
 
     await invoke('delete-all');
 
-    setData([]);
+    setTodos([]);
     setDeleteAllShowing(false);
     setDeletingAll(false);
   }
 
+  const onSubmit = (e) => {
+    e.preventDefault();
+    createTodo(input);
+    setInput('');
+  };
+
   useEffect(() => {
-    if (!data) return;
-    if (!data.find(todo => todo.isSaving || todo.isDeleting)) return;
+    if (!todos) return;
+    if (!todos.find(todo => todo.isSaving || todo.isDeleting)) return;
 
     Promise.all(
-      data.map((todo) => {
+      todos.map((todo) => {
         if (todo.isSaving && !todo.id) {
           return invoke('create', { label: todo.label, isChecked: false })
         }
@@ -88,74 +92,98 @@ function App() {
       })
     )
     .then(saved => saved.filter(a => a))
-    .then(setData)
-  }, [data]);
+    .then(setTodos)
+  }, [todos]);
 
-  return (
-    <Card>
-      {data ? (
-        <Fragment>
-          <ScrollContainer>
-            {data.map((item, i) => (
-              <Row isChecked={item.isChecked} key={item.label}>
-                <Checkbox
-                  isChecked={item.isChecked}
-                  label={item.label}
-                  name={item.label}
-                  onChange={() => toggleTodo(item)}
-                />
-                <Status>
-                  {(item.isSaving || item.isDeleting) ? <Spinner size="medium" /> : null}
-                  {item.isChecked ? <Lozenge appearance="new">Done</Lozenge> : null}
-                  <Button size="small" spacing="none" onClick={() => deleteTodo(item)}>
-                    <IconContainer><Icon><CloseIcon /></Icon></IconContainer>
-                  </Button>
-                </Status>
-              </Row>
-            ))}
-            <Row isCompact>
-              <Form onSubmit={(e) => {
-                e.preventDefault();
-                createTodo(input);
-                setInput('');
-              }}>
-                <Textfield
-                  appearance="subtle"
-                  placeholder="Add a todo +"
-                  value={input}
-                  onChange={({ target }) => setInput(target.value)}
-                />
-              </Form>
-            </Row>
-          </ScrollContainer>
-          <SummaryFooter>
-            <SummaryCount>
-              <Lozenge>{data.filter(todo => todo.isChecked).length}/{data.length} Completed</Lozenge>
-            </SummaryCount>
-            <SummaryActions>
-              {isDeleteAllShowing ? (
-                <Button
-                  appearance="danger"
-                  spacing="compact"
-                  isLoading={isDeletingAll}
-                  isDisabled={isDeletingAll}
-                  onClick={deleteAllTodos}
-                >
-                  Delete All
-                </Button>
-              ) : (
-                <Button appearance="subtle" spacing="none" onClick={() => setDeleteAllShowing(true)}>
-                  <IconContainer><Icon><TrashIcon /></Icon></IconContainer>
-                </Button>
-              )}
-            </SummaryActions>
-          </SummaryFooter>
-        </Fragment>
-      ) : (
+  if (!todos) {
+    return (
+      <Card>
         <LoadingContainer>
           <Spinner size="large" />
         </LoadingContainer>
-      )}
+      </Card>
+    );
+  }
+
+  const completedCount = todos.filter(todo => todo.isChecked).length;
+  const totalCount = todos.length;
+
+  const Rows = () => (
+    <Fragment>
+      {todos.map(({ id, label, isChecked, isSaving, isDeleting }, i) => {
+        const isSpinnerShowing = isSaving || isDeleting;
+
+        return (
+          <Row isChecked={isChecked} key={label}>
+            <Checkbox isChecked={isChecked} label={label} name={label} onChange={() => toggleTodo(id)} />
+            <Status>
+              {isSpinnerShowing ? <Spinner size="medium" /> : null}
+              {isChecked ? <Lozenge appearance="new">Done</Lozenge> : null}
+              <Button size="small" spacing="none" onClick={() => deleteTodo(id)}>
+                <IconContainer>
+                  <Icon>
+                    <CloseIcon />
+                  </Icon>
+                </IconContainer>
+              </Button>
+            </Status>
+          </Row>
+        );
+      })}
+    </Fragment>
+  );
+
+  const NewTodo = () => (
+    <Row isCompact>
+      <Form onSubmit={onSubmit}>
+        <Textfield
+          appearance="subtle"
+          placeholder="Add a todo +"
+          value={input}
+          onChange={({ target }) => setInput(target.value)}
+        />
+      </Form>
+    </Row>
+  );
+
+  const DeleteAll = () => isDeleteAllShowing ? (
+    <Button
+      appearance="danger"
+      spacing="compact"
+      isLoading={isDeletingAll}
+      isDisabled={isDeletingAll}
+      onClick={deleteAllTodos}
+    >
+      Delete All
+    </Button>
+  ) : (
+    <Button appearance="subtle" spacing="none" onClick={() => setDeleteAllShowing(true)}>
+      <IconContainer>
+        <Icon>
+          <TrashIcon />
+        </Icon>
+      </IconContainer>
+    </Button>
+  );
+
+  const CompletedLozenge = () => <Lozenge>{completedCount}/{totalCount} Completed</Lozenge>;
+
+  return (
+    <Card>
+      <Fragment>
+        <ScrollContainer>
+          <Rows />
+          <NewTodo />
+        </ScrollContainer>
+        <SummaryFooter>
+          <SummaryCount>
+            <CompletedLozenge />
+          </SummaryCount>
+          <SummaryActions>
+            <DeleteAll />
+          </SummaryActions>
+        </SummaryFooter>
+      </Fragment>
     </Card>
   );
 }

@@ -1,6 +1,6 @@
-# Forge Hello World
+# Forge Todo App - Custom UI
 
-This project contains a Forge app written in Javascript that displays `Hello World!` in a Jira issue panel. 
+This project contains a Forge custom UI app written in React that displays in a Jira issue panel. 
 
 See [developer.atlassian.com/platform/forge/](https://developer.atlassian.com/platform/forge) for documentation and tutorials explaining Forge.
 
@@ -10,9 +10,23 @@ See [Set up Forge](https://developer.atlassian.com/platform/forge/set-up-forge/)
 
 ## Quick start
 
-- Modify your app by editing the `src/index.jsx` file.
+### Frontend
+- Change into the frontend directory:
+```
+cd ./static/spa
+```
 
-- Build and deploy your app by running:
+- Install your frontend dependencies:
+```
+npm install
+```
+
+- Build your frontend by running:
+```
+npm run build
+```
+
+- Build and deploy your app from the top directory by running:
 ```
 forge deploy
 ```
@@ -20,11 +34,6 @@ forge deploy
 - Install your app in an Atlassian site by running:
 ```
 forge install
-```
-
-- Develop your app by running `forge tunnel` to proxy invocations locally:
-```
-forge tunnel
 ```
 
 ### Notes
