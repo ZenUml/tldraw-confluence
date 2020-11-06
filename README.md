@@ -4,7 +4,7 @@ This project contains a Forge custom UI app written in React that displays in a 
 
 See [developer.atlassian.com/platform/forge/](https://developer.atlassian.com/platform/forge) for documentation and tutorials explaining Forge.
 
-![Todo app for Jira](./screenshot.png "Todo app for Jira")
+![Todo app for Jira](./example.gif "Todo app for Jira")
 
 ## Requirements
 
