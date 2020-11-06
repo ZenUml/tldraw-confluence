@@ -117,7 +117,7 @@ function App() {
             <Checkbox isChecked={isChecked} label={label} name={label} onChange={() => toggleTodo(id)} />
             <Status>
               {isSpinnerShowing ? <Spinner size="medium" /> : null}
-              {isChecked ? <Lozenge appearance="new">Done</Lozenge> : null}
+              {isChecked ? <Lozenge appearance="success">Done</Lozenge> : null}
               <Button size="small" spacing="none" onClick={() => deleteTodo(id)}>
                 <IconContainer>
                   <Icon>
