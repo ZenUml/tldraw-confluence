@@ -1,4 +1,4 @@
-# Forge Custom UI Todo App
+# Forge Todo App
 
 This project contains a Forge custom UI app written in React that displays in a Jira issue panel. 
 
@@ -12,13 +12,19 @@ See [Set up Forge](https://developer.atlassian.com/platform/forge/set-up-forge/)
 
 ## Quick start
 
+### Register the app
+- Register the app by running:
+```
+forge register
+```
+
 ### Frontend
-- Change into the frontend directory:
+- Change into the frontend directory by running:
 ```
 cd ./static/spa
 ```
 
-- Install your frontend dependencies:
+- Install your frontend dependencies by running:
 ```
 npm install
 ```
@@ -28,7 +34,10 @@ npm install
 npm run build
 ```
 
-- Build and deploy your app from the top directory by running:
+### Deployment
+For this section, ensure you have navigated back to the root of the repository.
+
+- Build and deploy your app by running:
 ```
 forge deploy
 ```
@@ -38,11 +47,11 @@ forge deploy
 forge install
 ```
 
-### Notes
-- Use the `forge deploy` command when you want to persist code changes.
-- Use the `forge install` command when you want to install the app on a new site.
-- Once the app is installed on a site, the site picks up the new app changes you deploy without needing to rerun the install command.
-
 ## Support
-
 See [Get help](https://developer.atlassian.com/platform/forge/get-help/) for how to get help and provide feedback.
+
+## Contributions
+Contributions are welcome! Please see CONTRIBUTING.md for details.
+
+## License
+Copyright (c) 2020 Atlassian and others. Apache 2.0 licensed, see LICENSE file.
