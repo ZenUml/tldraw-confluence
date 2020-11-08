@@ -1,11 +1,12 @@
 import styled from 'styled-components';
+import { colors, elevation } from '@atlaskit/theme';
 
 export const Card = styled.div`
+  ${elevation['e100']};
+  background: ${colors.N0};
   position: relative;
   text-decoration: none;
-  background: rgb(255, 255, 255);
-  box-shadow: rgba(9, 30, 66, 0.1) 0px 1px 1px, rgba(9, 30, 66, 0.31) 0px 0px 1px;
-  border-radius: 4px;
+  border-radius: 3px;
   margin: 4px 1px;
   height: calc(100vh - 10px);
   box-sizing: border-box;
@@ -36,7 +37,7 @@ export const LoadingContainer = styled.div`
 export const Row = styled.div`
   transition: .3s ease all;
   padding: 8px;
-  border-bottom: 1px solid #efefef;
+  border-bottom: 1px solid ${colors.N30};
 
   button {
     opacity: 0;
@@ -83,8 +84,8 @@ export const SummaryFooter = styled.div`
   bottom: 0;
   left: 0;
   position: absolute;
-  background: #f7f7f7;
-  border-top: 1px solid #eaeaea;
+  background: ${colors.N10};
+  border-top: 1px solid ${colors.N30};
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -11,6 +11,7 @@
     "@atlaskit/lozenge": "^10.0.6",
     "@atlaskit/spinner": "^15.0.5",
     "@atlaskit/textfield": "^4.0.9",
+    "@atlaskit/theme": "^11.0.1",
     "@forge/bridge": "0.1.0-next.3",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
