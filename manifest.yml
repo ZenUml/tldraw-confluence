@@ -1,13 +1,11 @@
 modules:
-  jira:issuePanel:
+  macro:
     - key: todo-panel
       resource: main
       resolver:
         function: resolver
       title: Todos
-      viewportSize: medium
-      tooltip: Add a todo list
-      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+      description: Todos description
   function:
     - key: resolver
       handler: index.handler
@@ -15,5 +13,10 @@ resources:
   - key: main
     path: static/spa/build
 permissions:
+  content:
+    styles:
+      - 'unsafe-inline'
   scopes:
     - storage:app
+app:
+  id: ari:cloud:ecosystem::app/ce514640-a7e3-4dff-a74e-3b581d166a93
