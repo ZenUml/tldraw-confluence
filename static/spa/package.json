@@ -13,6 +13,7 @@
     "@atlaskit/textfield": "^4.0.9",
     "@atlaskit/theme": "^11.0.1",
     "@forge/bridge": "0.1.0-next.3",
+    "@tldraw/tldraw": "^1.1.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.3",

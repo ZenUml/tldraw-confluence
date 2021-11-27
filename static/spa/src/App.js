@@ -1,5 +1,6 @@
 import React, { useEffect, useState, Fragment } from 'react';
 import { invoke } from '@forge/bridge';
+import {Tldraw} from '@tldraw/tldraw';
 
 // Atlaskit
 import { LoadingButton as Button } from '@atlaskit/button';
@@ -109,6 +110,9 @@ function App() {
 
   const Rows = () => (
     <Fragment>
+      TLDrawer
+      <Tldraw />
+      TODOs:
       {todos.map(({ id, label, isChecked, isSaving, isDeleting }, i) => {
         const isSpinnerShowing = isSaving || isDeleting;
 
