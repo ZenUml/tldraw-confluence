@@ -1,6 +1,6 @@
 import Resolver from '@forge/resolver';
 import { storage } from '@forge/api';
-import {
+import ForgeUI, {
   MacroConfig,
   render,
   TextField}
