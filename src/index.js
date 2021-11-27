@@ -1,19 +1,9 @@
 import Resolver from '@forge/resolver';
 import { storage } from '@forge/api';
-import ForgeUI, {
+import {
   MacroConfig,
-  Image,
-  Macro,
-  Option,
   render,
-  Select,
-  useAction,
-  useConfig,
-  useProductContext,
-  Button,
-  TextField,
-  CheckboxGroup,
-  Checkbox}
+  TextField}
   from '@forge/ui';
 
 const resolver = new Resolver();
