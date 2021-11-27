@@ -1,11 +1,12 @@
 import React from 'react';
 import {Tldraw} from '@tldraw/tldraw';
+import {Card} from "./Styles";
 
 function App() {
   return (
-    <div>
+    <Card>
       <Tldraw />
-    </div>
+    </Card>
   );
 }
 

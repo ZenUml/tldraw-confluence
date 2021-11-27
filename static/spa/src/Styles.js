@@ -8,7 +8,7 @@ export const Card = styled.div`
   text-decoration: none;
   border-radius: 3px;
   margin: 4px 1px;
-  height: calc(100vh - 10px);
+  height: 400px;
   box-sizing: border-box;
 `;
 
