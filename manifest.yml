@@ -17,6 +17,9 @@ resources:
   - key: main
     path: static/spa/build
 permissions:
+  external:
+    fonts:
+      - https://fonts.googleapis.com/css2
   content:
     styles:
       - 'unsafe-inline'
