@@ -112,27 +112,6 @@ function App() {
     <Fragment>
       TLDrawer
       <Tldraw />
-      TODOs:
-      {todos.map(({ id, label, isChecked, isSaving, isDeleting }, i) => {
-        const isSpinnerShowing = isSaving || isDeleting;
-
-        return (
-          <Row isChecked={isChecked} key={label}>
-            <Checkbox isChecked={isChecked} label={label} name={label} onChange={() => toggleTodo(id)} />
-            <Status>
-              {isSpinnerShowing ? <Spinner size="medium" /> : null}
-              {isChecked ? <Lozenge appearance="success">Done</Lozenge> : null}
-              <Button size="small" spacing="none" onClick={() => deleteTodo(id)}>
-                <IconContainer>
-                  <Icon>
-                    <CloseIcon />
-                  </Icon>
-                </IconContainer>
-              </Button>
-            </Status>
-          </Row>
-        );
-      })}
     </Fragment>
   );
 
@@ -161,26 +140,8 @@ function App() {
   return (
     <Card>
       <ScrollContainer>
-        <Rows />
-        <Row isCompact>
-          <Form onSubmit={onSubmit}>
-            <Textfield
-              appearance="subtle"
-              placeholder="Add a todo +"
-              value={input}
-              onChange={({ target }) => setInput(target.value)}
-            />
-          </Form>
-        </Row>
+        <Tldraw/>
       </ScrollContainer>
-      <SummaryFooter>
-        <SummaryCount>
-          <CompletedLozenge />
-        </SummaryCount>
-        <SummaryActions>
-          <DeleteAll />
-        </SummaryActions>
-      </SummaryFooter>
     </Card>
   );
 }

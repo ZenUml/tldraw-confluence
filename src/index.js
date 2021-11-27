@@ -1,5 +1,20 @@
 import Resolver from '@forge/resolver';
 import { storage } from '@forge/api';
+import ForgeUI, {
+  MacroConfig,
+  Image,
+  Macro,
+  Option,
+  render,
+  Select,
+  useAction,
+  useConfig,
+  useProductContext,
+  Button,
+  TextField,
+  CheckboxGroup,
+  Checkbox}
+  from '@forge/ui';
 
 const resolver = new Resolver();
 
@@ -66,3 +81,16 @@ resolver.define('delete-all', ({ context }) => {
 });
 
 export const handler = resolver.getDefinitions();
+
+const Config = () => {
+
+  return (
+    <MacroConfig>
+      <TextField name="name" label="Diagram title" placeholder="Untitled Diagram" description="You need to publish this page to start drawing diagrams" isRequired="true"/>
+    </MacroConfig>
+  );
+}
+
+export const config = render(
+  <Config />
+)
