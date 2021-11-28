@@ -1,11 +1,12 @@
 modules:
   macro:
-    - key: todo-panel
+    - key: whiteboard
       resource: main
       resolver:
         function: resolver
-      title: Todos
-      description: This macro add a whiteboard to the confluence page. You need to publish this page to start drawing.
+      title: Tldraw whiteboard on Confluence
+      description: This macro add a whiteboard to the confluence page. You need to
+        publish this page to start drawing.
       config:
         function: config-fn
   function:
@@ -26,4 +27,4 @@ permissions:
   scopes:
     - storage:app
 app:
-  id: ari:cloud:ecosystem::app/ce514640-a7e3-4dff-a74e-3b581d166a93
+  id: ari:cloud:ecosystem::app/368b610d-bac1-4e2a-9311-6ec0adca5e49

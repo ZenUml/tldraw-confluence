@@ -11,7 +11,9 @@ function App() {
   )
   if(!isFetched) {
     invoke('get-all').then((doc) => {
-      if(doc) {
+      console.debug('[App] get-all', doc, doc.id);
+
+      if(doc && doc.id) {
         console.debug('[App] get-all', doc);
         rInitialDocument.current = doc;
         setIsFetched(true);
