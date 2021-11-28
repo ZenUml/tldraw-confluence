@@ -20,7 +20,11 @@ resources:
 permissions:
   external:
     fonts:
-      - https://fonts.googleapis.com/css2
+      - 'https://fonts.googleapis.com/css2'
+      - 'https://fonts.gstatic.com/'
+    styles:
+      - 'https://fonts.googleapis.com/css2'
+      - 'https://fonts.gstatic.com/'
   content:
     styles:
       - 'unsafe-inline'
