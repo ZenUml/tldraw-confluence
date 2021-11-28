@@ -21,6 +21,8 @@ const getAll = async (listId) => {
 }
 
 resolver.define('get-all', ({ context }) => {
+  console.debug('get-all load from', context);
+
   return getAll(getListKeyFromContext(context));
 });
 
@@ -40,18 +42,8 @@ resolver.define('create', async ({ payload, context }) => {
 });
 
 resolver.define('update', async ({ payload, context }) => {
-  const listId = getListKeyFromContext(context);
-  let records = await getAll(listId);
-
-  records = records.map(item => {
-    if (item.id === payload.id) {
-      return payload;
-    }
-    return item;
-  })
-
-  await storage.set(getListKeyFromContext(context), records);
-
+  console.debug('update document', payload);
+  await storage.set(getListKeyFromContext(context), payload);
   return payload;
 });
 
