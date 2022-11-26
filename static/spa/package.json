@@ -12,12 +12,13 @@
     "@atlaskit/spinner": "^15.0.5",
     "@atlaskit/textfield": "^4.0.9",
     "@atlaskit/theme": "^11.0.1",
-    "@forge/bridge": "0.1.0-next.3",
-    "@tldraw/tldraw": "^1.1.5",
+    "@forge/bridge": "^2.5.0",
+    "@tldraw/tldraw": "^1.26.2",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-scripts": "3.4.3",
-    "styled-components": "^5.2.1"
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "react-scripts": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
