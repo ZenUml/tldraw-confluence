@@ -21,12 +21,16 @@ export default function(invoke) {
       });
     }
     function onPersist(app) {
+      if (JSON.stringify(app.document) === JSON.stringify(rInitialDocument.current)) {
+        console.debug('[App] onPersist skipped');
+        return;
+      }
       console.log('persist document d', app.document);
       invoke('update', app.document);
     }
     return (
         <Card style={{height: '400px'}}>
-          <Tldraw onPersist={onPersist} document={defaultDocument} />
+          <Tldraw onPersist={onPersist} document={rInitialDocument.current} />
         </Card>
     );
   }

@@ -60,6 +60,11 @@ $ forge tunnel
 Note that `WDS_SOCKET_PORT` is set to `8001` in `package.json` for hot module reload.
 When you run `forge tunnel` the page in iFrame is loaded from `localhost:8001`.
 
+## Questions
+
+1. Does the tunnel model store the macro content?
+Yes.
+
 ## Support
 See [Get help](https://developer.atlassian.com/platform/forge/get-help/) for how to get help and provide feedback.
 
