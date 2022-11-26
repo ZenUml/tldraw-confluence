@@ -14,7 +14,7 @@
     "react-scripts": "^5.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "WDS_SOCKET_PORT=8001 react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject"
   },

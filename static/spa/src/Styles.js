@@ -1,7 +1,6 @@
 import styled from 'styled-components';
 
 export const Card = styled.div`
-  ${elevation['e100']};
   position: relative;
   text-decoration: none;
   border-radius: 3px;
@@ -81,8 +80,6 @@ export const SummaryFooter = styled.div`
   bottom: 0;
   left: 0;
   position: absolute;
-  background: ${colors.N10};
-  border-top: 1px solid ${colors.N30};
   display: flex;
   justify-content: space-between;
   align-items: center;
