@@ -1,9 +1,7 @@
 import styled from 'styled-components';
-import { colors, elevation } from '@atlaskit/theme';
 
 export const Card = styled.div`
   ${elevation['e100']};
-  background: ${colors.N0};
   position: relative;
   text-decoration: none;
   border-radius: 3px;
@@ -37,7 +35,6 @@ export const LoadingContainer = styled.div`
 export const Row = styled.div`
   transition: .3s ease all;
   padding: 8px;
-  border-bottom: 1px solid ${colors.N30};
 
   button {
     opacity: 0;
