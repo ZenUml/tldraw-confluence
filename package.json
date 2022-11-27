@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "deploy:staging": "forge deploy -e staging",
-    "install:staging": "forge install -e staging -s zenuml-stg.atlassian.net",
+    "install:staging": "forge install --upgrade -e staging -s zenuml-stg.atlassian.net",
     "deploy:production": "forge deploy -e production",
     "install:production": "forge install --upgrade -e production -s zenuml-stg.atlassian.net"
   },
