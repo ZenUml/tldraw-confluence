@@ -16,6 +16,7 @@ export default function (invoke) {
   return function App() {
     const [isFetched, setIsFetched] = React.useState(false);
     const [height, setHeight] = React.useState(400);
+    const [currentDocument, setCurrentDocument] = React.useState(defaultDocument);
     const rInitialDocument = React.useRef(
         defaultDocument
     )
@@ -25,20 +26,37 @@ export default function (invoke) {
 
         if (doc && doc.id) {
           console.debug('[App] get-all', doc);
-          rInitialDocument.current = doc;
+          setCurrentDocument(doc);
           setIsFetched(true);
+          if(doc.viewport?.height) {
+            setHeight(doc.viewport.height);
+          }
         }
       });
     }
 
     function onPersist(app) {
-      if (JSON.stringify(app.document) === JSON.stringify(rInitialDocument.current)) {
+      if (JSON.stringify(app.document) === JSON.stringify(currentDocument)) {
         console.debug('[App] onPersist skipped');
         return;
       }
-      console.log('persist document d', app.document);
-      invoke('update', app.document);
+      app.document.viewport = {height}
+      console.debug('persisting document - app.document is', app.document);
+
+      const merged = Object.assign(app.document, {viewport: {height}});
+      console.log('persist document - merged', merged);
+      invoke('update', merged);
+      setCurrentDocument(merged);
     }
+
+    function onPersistViewport(h) {
+      console.log('persist viewport with height', h);
+      const merged = Object.assign(currentDocument, {viewport: {height: h}});
+      console.log('persist document', merged);
+      invoke('update', merged);
+      setCurrentDocument(merged);
+    }
+
     return (
         <div>
           <Rnd
@@ -52,10 +70,11 @@ export default function (invoke) {
                 const h = Number(ref.style.height.slice(0, -2));
                 console.log('setting height', h);
                 setHeight(h);
+                onPersistViewport(h);
               }}
           >
             <div>
-              <Tldraw disableAssets={true} onPersist={onPersist} document={rInitialDocument.current}/>
+              <Tldraw showMultiplayerMenu={false} disableAssets={true} onPersist={onPersist} document={currentDocument}/>
             </div>
           </Rnd>
         </div>
