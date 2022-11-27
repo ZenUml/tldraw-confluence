@@ -55,7 +55,7 @@ export default function (invoke) {
               }}
           >
             <div>
-              <Tldraw onPersist={onPersist} document={rInitialDocument.current}/>
+              <Tldraw disableAssets={true} onPersist={onPersist} document={rInitialDocument.current}/>
             </div>
           </Rnd>
         </div>
