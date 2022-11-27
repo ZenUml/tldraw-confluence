@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-console.log('Index', localStorage.getItem('no-bridge'))
+import './index.css';
 
 function importBuildTarget() {
   if (localStorage.getItem('no-bridge')) {
