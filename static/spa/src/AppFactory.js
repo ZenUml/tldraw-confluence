@@ -2,6 +2,7 @@ import React from "react";
 import {defaultDocument} from "./defaultDocument";
 import {Tldraw} from "@tldraw/tldraw";
 import {Rnd} from "react-rnd";
+import Debug from "./Debug/Debug";
 
 const style = {
   display: "flex",
@@ -62,6 +63,7 @@ export default function (invoke) {
           <Rnd
               enableResizing={{bottom: true, right: true}}
               disableDragging={true}
+              className="flex flex-col"
               style={style}
               size={{height: `${height}px`, width: '100%'}}
 
@@ -73,7 +75,8 @@ export default function (invoke) {
                 onPersistViewport(h);
               }}
           >
-            <div>
+            <Debug />
+            <div className="relative flex flex-grow">
               <Tldraw showMultiplayerMenu={false} disableAssets={true} onPersist={onPersist} document={currentDocument}/>
             </div>
           </Rnd>
