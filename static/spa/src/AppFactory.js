@@ -18,16 +18,18 @@ export default function (invoke) {
     const [isFetched, setIsFetched] = React.useState(false);
     const [height, setHeight] = React.useState(400);
     const [currentDocument, setCurrentDocument] = React.useState(defaultDocument);
-    const rInitialDocument = React.useRef(
-        defaultDocument
-    )
+
     if (!isFetched) {
       invoke('get-all').then((doc) => {
         console.debug('[App] get-all', doc, doc.id);
 
         if (doc && doc.id) {
           console.debug('[App] get-all', doc);
-          setCurrentDocument(doc);
+          // TODO: allow assets when we have a way to upload them
+          // This also fix the issue that data cannot be correctly migrated
+          const fixedDoc = Object.assign({}, doc, {assets: {}});
+
+          setCurrentDocument(fixedDoc);
           setIsFetched(true);
           if(doc.viewport?.height) {
             setHeight(doc.viewport.height);
