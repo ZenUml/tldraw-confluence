@@ -28,11 +28,12 @@ export default function (invoke) {
           // TODO: allow assets when we have a way to upload them
           // This also fix the issue that data cannot be correctly migrated
           const fixedDoc = Object.assign({}, doc, {assets: {}});
+          console.debug('[App] get-all - fixed doc:', doc);
 
           setCurrentDocument(fixedDoc);
           setIsFetched(true);
           if(doc.viewport?.height) {
-            setHeight(doc.viewport.height);
+            setHeight(fixedDoc.viewport.height);
           }
         }
       });
