@@ -17,6 +17,8 @@ modules:
 resources:
   - key: main
     path: static/spa/build
+    tunnel:
+      port: 3000
 permissions:
   external:
     fonts:

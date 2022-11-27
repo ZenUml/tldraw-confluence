@@ -47,6 +47,24 @@ forge deploy
 forge install
 ```
 
+## Testing
+
+1. Run the app locally by running `npm run start`. Go to `http://localhost:3000` to see the app running.
+Note that it will run without the bridge. See `index.js` for more details.
+
+2.  To test it on Confluence, run:
+```shell
+$ npm run start
+$ forge tunnel
+```
+Note that `WDS_SOCKET_PORT` is set to `8001` in `package.json` for hot module reload.
+When you run `forge tunnel` the page in iFrame is loaded from `localhost:8001`.
+
+## Questions
+
+1. Does the tunnel model store the macro content?
+Yes.
+
 ## Support
 See [Get help](https://developer.atlassian.com/platform/forge/get-help/) for how to get help and provide feedback.
 

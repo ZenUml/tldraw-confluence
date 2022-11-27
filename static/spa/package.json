@@ -4,23 +4,22 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@atlaskit/button": "^15.1.2",
-    "@atlaskit/checkbox": "^11.0.7",
-    "@atlaskit/css-reset": "^6.0.1",
-    "@atlaskit/icon": "^21.1.4",
-    "@atlaskit/lozenge": "^10.0.6",
-    "@atlaskit/spinner": "^15.0.5",
-    "@atlaskit/textfield": "^4.0.9",
-    "@atlaskit/theme": "^11.0.1",
-    "@forge/bridge": "0.1.0-next.3",
-    "@tldraw/tldraw": "^1.1.5",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-scripts": "3.4.3",
-    "styled-components": "^5.2.1"
+    "@forge/bridge": "^2.5.0",
+    "@tldraw/tldraw": "^1.26.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-rnd": "^10.3.7",
+    "styled-components": "^5.3.6"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.19",
+    "react-scripts": "^5.0.1",
+    "tailwindcss": "^3.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "WDS_SOCKET_PORT=8001 react-scripts start",
+    "start:local": "react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject"
   },

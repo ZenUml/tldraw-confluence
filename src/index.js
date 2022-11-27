@@ -21,9 +21,9 @@ const getAll = async (listId) => {
 }
 
 resolver.define('get-all', ({ context }) => {
-  console.debug('get-all load from', context);
-
-  return getAll(getListKeyFromContext(context));
+  const listKey = getListKeyFromContext(context);
+  console.debug(`get-all load for ${listKey}`);
+  return getAll(listKey);
 });
 
 resolver.define('create', async ({ payload, context }) => {
@@ -42,8 +42,9 @@ resolver.define('create', async ({ payload, context }) => {
 });
 
 resolver.define('update', async ({ payload, context }) => {
-  console.debug('update document', payload);
-  await storage.set(getListKeyFromContext(context), payload);
+  const listKey = getListKeyFromContext(context);
+  console.debug(`update document ${listKey}`, payload);
+  await storage.set(listKey, payload);
   return payload;
 });
 
