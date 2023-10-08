@@ -34,17 +34,30 @@ npm install
 npm run build
 ```
 
-### Deployment
+### Deployment Staging
 For this section, ensure you have navigated back to the root of the repository.
 
 - Build and deploy your app by running:
 ```
-forge deploy
+forge deploy:staging
 ```
 
 - Install your app in an Atlassian site by running:
 ```
-forge install
+forge install:staging
+```
+
+### Deployment Production
+For this section, ensure you have navigated back to the root of the repository.
+
+- Build and deploy your app by running:
+```
+forge deploy:production
+```
+
+- Install your app in an Atlassian site by running:
+```
+forge install:production
 ```
 
 ## Testing
