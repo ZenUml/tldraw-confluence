@@ -23,7 +23,9 @@ function decompressIfNecessary(doc) {
 }
 
 function compressDoc(doc) {
-  return {compressedJson: compress(JSON.stringify(doc))};
+  const compressedJson = compress(JSON.stringify(doc));
+  console.debug('[App] compressDoc', compressedJson);
+  return {compressedJson: compressedJson};
 }
 
 export default function (invoke) {
@@ -34,10 +36,8 @@ export default function (invoke) {
 
     if (!isFetched) {
       invoke('get-all').then((doc) => {
+        console.debug('[App] get-all', doc);
         doc = decompressIfNecessary(doc);
-
-        console.debug('[App] get-all', doc, doc.id);
-
         if (doc && doc.id) {
           console.debug('[App] get-all', doc);
           // TODO: allow assets when we have a way to upload them
