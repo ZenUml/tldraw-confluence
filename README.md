@@ -1,4 +1,4 @@
-# Forge Todo App
+# Forge Tldraw App
 
 This project contains a Forge custom UI app written in React that displays in a Jira issue panel. 
 

@@ -3,6 +3,7 @@ import {defaultDocument} from "./defaultDocument";
 import {Tldraw} from "@tldraw/tldraw";
 import {Rnd} from "react-rnd";
 import Debug from "./Debug/Debug";
+import {compress, decompress} from './compress';
 
 const style = {
   display: "flex",
@@ -13,6 +14,18 @@ const style = {
   marginBottom: '10px',
 };
 
+function decompressIfNecessary(doc) {
+  if(doc.compressedJson) {
+    const decompressedJson = decompress(doc.compressedJson);
+    return JSON.parse(decompressedJson);
+  }
+  return doc;
+}
+
+function compressDoc(doc) {
+  return {compressedJson: compress(JSON.stringify(doc))};
+}
+
 export default function (invoke) {
   return function App() {
     const [isFetched, setIsFetched] = React.useState(false);
@@ -21,6 +34,8 @@ export default function (invoke) {
 
     if (!isFetched) {
       invoke('get-all').then((doc) => {
+        doc = decompressIfNecessary(doc);
+
         console.debug('[App] get-all', doc, doc.id);
 
         if (doc && doc.id) {
@@ -49,7 +64,7 @@ export default function (invoke) {
 
       const merged = Object.assign(app.document, {viewport: {height}});
       console.log('persist document - merged', merged);
-      invoke('update', merged);
+      saveToBackend(merged);
       setCurrentDocument(merged);
     }
 
@@ -57,8 +72,12 @@ export default function (invoke) {
       console.log('persist viewport with height', h);
       const merged = Object.assign(currentDocument, {viewport: {height: h}});
       console.log('persist document', merged);
-      invoke('update', merged);
+      saveToBackend(merged);
       setCurrentDocument(merged);
+    }
+
+    function saveToBackend(doc) {
+      invoke('update', compressDoc(doc));
     }
 
     return (
