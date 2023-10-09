@@ -21,6 +21,11 @@ resources:
       port: 3000
 permissions:
   external:
+    fetch:
+      backend:
+        - '*.mixpanel.com'
+      client:
+        - '*.mixpanel.com'
     fonts:
       - 'https://fonts.googleapis.com/css2'
       - 'https://fonts.gstatic.com/'

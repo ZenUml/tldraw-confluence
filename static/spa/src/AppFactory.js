@@ -4,6 +4,9 @@ import {Tldraw} from "@tldraw/tldraw";
 import {Rnd} from "react-rnd";
 import Debug from "./Debug/Debug";
 import {compress, decompress} from './compress';
+import mixpanel from 'mixpanel-browser';
+
+mixpanel.init('0c62cea9ed2247f4824bf196f6817941', { debug: true, track_pageview: true, persistence: 'localStorage' });
 
 const style = {
   display: "flex",
@@ -66,6 +69,9 @@ export default function (invoke) {
       console.log('persist document - merged', merged);
       saveToBackend(merged);
       setCurrentDocument(merged);
+      mixpanel.track('Document Persisted', {
+        'Viewport Height': height
+      });
     }
 
     function onPersistViewport(h) {
@@ -74,6 +80,9 @@ export default function (invoke) {
       console.log('persist document', merged);
       saveToBackend(merged);
       setCurrentDocument(merged);
+      mixpanel.track('Viewport resize', {
+        'Viewport Height': height
+      });
     }
 
     function saveToBackend(doc) {

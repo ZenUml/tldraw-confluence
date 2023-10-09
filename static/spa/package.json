@@ -7,6 +7,7 @@
     "@forge/bridge": "^2.5.0",
     "@tldraw/tldraw": "^1.26.2",
     "lzutf8": "^0.6.3",
+    "mixpanel-browser": "^2.47.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-rnd": "^10.3.7",
