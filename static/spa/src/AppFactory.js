@@ -31,22 +31,31 @@ function compressDoc(doc) {
   return {compressedJson: compressedJson};
 }
 
-export default function (invoke) {
+export default function (invoke, view) {
   return function App() {
     const [isFetched, setIsFetched] = React.useState(false);
     const [height, setHeight] = React.useState(400);
     const [currentDocument, setCurrentDocument] = React.useState(defaultDocument);
+    const [allDoc, setAllDoc] = React.useState(defaultDocument);
+    let context;
+    const getContext = async () => context || (context = await view.getContext());
 
     if (!isFetched) {
-      invoke('get-all').then((doc) => {
-        console.debug('[App] get-all', doc);
-        doc = decompressIfNecessary(doc);
-        if (doc && doc.id) {
-          console.debug('[App] get-all', doc);
+      Promise.all([invoke('get-all'), getContext()]).then(([doc, context]) => {
+        console.debug('[App] get-all - doc:', doc, ', context:', context);
+        const decompressed = decompressIfNecessary(doc);
+        setAllDoc(decompressed);
+        console.debug('[App] get-all - decompressed doc:', decompressed);
+
+        //decompressed.spaces is a new storage format introduced in Jan 2024
+        const singleDoc = decompressed && decompressed.spaces && decompressed.spaces[context.extension.space.id]?.contents[context.extension.content.id] || decompressed;
+
+        if (singleDoc && singleDoc.id) {
+          console.debug('[App] get-all - resolved doc:', singleDoc);
           // TODO: allow assets when we have a way to upload them
           // This also fix the issue that data cannot be correctly migrated
-          const fixedDoc = Object.assign({}, doc, {assets: {}});
-          console.debug('[App] get-all - fixed doc:', doc);
+          const fixedDoc = Object.assign({}, singleDoc, {assets: {}});
+          console.debug('[App] get-all - fixed doc:', singleDoc);
 
           setCurrentDocument(fixedDoc);
           setIsFetched(true);
@@ -57,7 +66,7 @@ export default function (invoke) {
       });
     }
 
-    function onPersist(app) {
+    async function onPersist(app) {
       if (JSON.stringify(app.document) === JSON.stringify(currentDocument)) {
         console.debug('[App] onPersist skipped');
         return;
@@ -67,26 +76,39 @@ export default function (invoke) {
 
       const merged = Object.assign(app.document, {viewport: {height}});
       console.log('persist document - merged', merged);
-      saveToBackend(merged);
+      await saveToBackend(merged);
       setCurrentDocument(merged);
       mixpanel.track('Document Persisted', {
         'Viewport Height': height
       });
     }
 
-    function onPersistViewport(h) {
+    async function onPersistViewport(h) {
       console.log('persist viewport with height', h);
       const merged = Object.assign(currentDocument, {viewport: {height: h}});
       console.log('persist document', merged);
-      saveToBackend(merged);
+      await saveToBackend(merged);
       setCurrentDocument(merged);
       mixpanel.track('Viewport resize', {
         'Viewport Height': height
       });
     }
 
-    function saveToBackend(doc) {
-      invoke('update', compressDoc(doc));
+    async function saveToBackend(doc) {
+      const {extension: {content: content, space: space}} = await getContext();
+      let newDoc = allDoc;
+      if(!newDoc.spaces) {
+        newDoc = {spaces: {[space.id]: {contents: {[content.id]: doc}}}};
+      } else {
+        if(!newDoc.spaces[space.id]) {
+          newDoc.spaces[space.id] = {contents: {}};
+        }
+        newDoc.spaces[space.id].contents[content.id] = doc;
+        setAllDoc(newDoc);
+      }
+
+      console.log('saveToBackend:', newDoc);
+      invoke('update', compressDoc(newDoc));
     }
 
     return (

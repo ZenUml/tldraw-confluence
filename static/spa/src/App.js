@@ -1,6 +1,5 @@
-import React from 'react';
-import {invoke} from "@forge/bridge";
+import {invoke, view} from "@forge/bridge";
 import AppFactory from "./AppFactory";
 
-const App = AppFactory(invoke);
+const App = AppFactory(invoke, view);
 export default App;
