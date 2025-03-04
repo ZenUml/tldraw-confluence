@@ -11,7 +11,7 @@
     "install:production": "forge install --upgrade -e production -s zenuml-stg.atlassian.net"
   },
   "devDependencies": {
-    "eslint": "^7.32.0",
+    "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^4.2.0"
   },
   "dependencies": {
