@@ -1,6 +1,6 @@
 # Tldraw Confluence Renovation and conf-app Convergence Design
 
-**Status:** Draft — pending user review
+**Status:** Approved by the user on 2026-08-31
 
 **Repository:** `ZenUml/tldraw-confluence`
 
