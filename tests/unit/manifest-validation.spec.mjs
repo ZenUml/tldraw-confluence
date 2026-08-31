@@ -12,7 +12,7 @@ const runValidator = (manifestPath) => spawnSync(
   process.execPath,
   [validatorPath, manifestPath],
   {
-    cwd: repositoryRoot,
+    cwd: path.dirname(manifestPath),
     encoding: 'utf8',
     env: {
       ...process.env,
