@@ -24,11 +24,32 @@ const runValidator = (manifestPath) => spawnSync(
 
 describe('Forge manifest validation command', () => {
   it('passes the repository manifest when validation has warnings but no errors', () => {
-    const result = runValidator(path.join(repositoryRoot, 'manifest.yml'));
-    const output = `${result.stdout}${result.stderr}`;
+    const temporaryDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'tldraw-forge-manifest-valid-'),
+    );
+    const manifestFixturePath = path.join(temporaryDirectory, 'manifest.yml');
+    fs.copyFileSync(path.join(repositoryRoot, 'manifest.yml'), manifestFixturePath);
+    fs.mkdirSync(path.join(temporaryDirectory, 'static/spa/build'), { recursive: true });
+    fs.writeFileSync(
+      path.join(temporaryDirectory, 'static/spa/build/index.html'),
+      '<!doctype html><html><body></body></html>\n',
+      'utf8',
+    );
+    fs.mkdirSync(path.join(temporaryDirectory, 'src'), { recursive: true });
+    fs.copyFileSync(
+      path.join(repositoryRoot, 'src/index.js'),
+      path.join(temporaryDirectory, 'src/index.js'),
+    );
 
-    expect(result.status, output).toBe(0);
-    expect(output).toMatch(/Forge manifest validation: 0 error\(s\), \d+ warning\(s\)/);
+    try {
+      const result = runValidator(manifestFixturePath);
+      const output = `${result.stdout}${result.stderr}`;
+
+      expect(result.status, output).toBe(0);
+      expect(output).toMatch(/Forge manifest validation: 0 error\(s\), \d+ warning\(s\)/);
+    } finally {
+      fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+    }
   });
 
   it('fails an invalid manifest and reports validation errors', () => {
