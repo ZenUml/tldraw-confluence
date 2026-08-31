@@ -74,8 +74,11 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(workflow.jobs.staging.secrets).toBe('inherit');
     expect(workflow.jobs.staging.if).toContain("github.event_name == 'push'");
     expect(workflow.concurrency.group).toBe(
-      '${{ github.workflow }}-${{ github.head_ref || github.ref_name }}',
+      '${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}',
     );
+    // The event must stay in the key. Without it the push and pull_request runs for one
+    // branch cancel each other and the surviving pull request reports a failed check.
+    expect(workflow.concurrency.group).toContain('github.event_name');
     expect(workflow.concurrency['cancel-in-progress']).toContain(
       'github.event.repository.default_branch',
     );

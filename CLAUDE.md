@@ -140,11 +140,16 @@ browser, authenticate to Confluence, or prove product behavior.
 - Use a feature branch and pull request for every change.
 - Run `pnpm validate` before submission.
 - The authoritative PR check is `Build and Unit Test`.
-- Every branch push and pull request runs that check; push/PR events for the same
-  branch share one concurrency key. Only a successful `main` push can call staging.
-- The PR check is secretless and receives no Forge credentials. Protected staging
-  and production jobs own authenticated official Forge lint immediately before
-  deploy.
+- Every branch push and pull request runs that check. The concurrency key includes
+  the event, so a push run and a pull request run for the same branch never cancel
+  each other; a superseding run of the same event still cancels its predecessor.
+  Only a successful `main` push can call staging.
+- The PR check is secretless and receives no Forge credentials, and its `build` job
+  references no secret. The staging caller passes `secrets: inherit`, which reaches
+  only the default-branch-gated staging job: a called workflow receives no
+  environment secrets, so the credential cannot come from the environment alone.
+  Protected staging and production jobs own authenticated official Forge lint
+  immediately before deploy.
 - Normal deployment never installs or upgrades an app installation. Bootstrap and
   upgrade commands require a separately approved test tenant.
 - Never infer a tenant from old scripts or documentation.

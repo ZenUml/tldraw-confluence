@@ -12,8 +12,13 @@ on:
 permissions:
   contents: read
 
+# The push and pull_request events for one branch must not share a concurrency key.
+# When they did, whichever run started second cancelled the other, `gh pr checks`
+# reported the cancelled run as a failure, and `mergeStateStatus` stayed UNSTABLE for
+# the life of every pull request. Keying on the event as well keeps one authoritative
+# conclusion per event and still cancels superseded runs within the same event.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
 
 jobs:
