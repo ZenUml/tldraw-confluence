@@ -32,8 +32,9 @@ From exact-SHA runs, select the newest exact-SHA `pull_request` run by `createdA
 using `databaseId` as the tie-breaker, and treat only that run as authoritative. This
 matters when `ready_for_review` or `reopened` creates another PR run without changing
 the SHA. Wait if the newest run is active. Never reuse an older PR run from the same SHA.
-Because push and PR events share one branch concurrency key, an exact-SHA
-cancelled push run is duplicate noise. If the newest PR run itself is cancelled,
+Since 2026-08-31 the concurrency key includes the event, so push and PR runs for one
+branch no longer cancel each other. On pull requests opened before that change, an
+exact-SHA cancelled push run is duplicate noise. If the newest PR run itself is cancelled,
 report `BLOCKED`; do not accept a successful push run or an older PR run as its
 substitute. Rerun the PR workflow only when explicitly authorized and only after
 confirming that no matching run is active. Do not reuse a green run from an earlier

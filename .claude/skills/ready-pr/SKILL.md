@@ -31,9 +31,12 @@ Require:
 
 This skill does not switch branches to manufacture local evidence. If the local checkout is not the PR head, report that local validation was not re-run; the Build and Unit Test job remains the authoritative remote check.
 
-## Mark Ready — STRUCTURAL ONLY / UNVALIDATED
+## Mark Ready — VALIDATED 2026-08-31
 
-This state-changing half remains structural until exercised on a real ZenUml/tldraw-confluence WP1 PR.
+Exercised on PR #6 (WP1: converge Whiteboard tooling and release lifecycle). `gh pr ready 6` returned
+`isDraft: false` for the unchanged head SHA `60a4f4a`. Note that `ready_for_review` is one of the
+workflow's pull_request trigger types, so readying starts a new `Build and Unit Test` run for the same
+SHA; run 33393098514 passed in 40s. Wait for that run rather than trusting the pre-ready result.
 
 Proceed only when the user authorized the Draft-to-Ready transition:
 

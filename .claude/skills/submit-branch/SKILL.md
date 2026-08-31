@@ -42,9 +42,11 @@ Find an existing PR for the exact head branch:
 
 Reuse it only when headRefName and baseRefName match the intended branch and main.
 
-## Submit — STRUCTURAL ONLY / UNVALIDATED
+## Submit — VALIDATED 2026-08-31
 
-This state-changing half remains structural until exercised on a real ZenUml/tldraw-confluence WP1 PR.
+Exercised five times: PRs #7, #8, #9, #10 and #11. Each followed the same path — branch off `main`,
+`pnpm validate` green locally, `git push -u`, `gh pr create` — and each produced a `Build and Unit Test`
+run that passed on the exact head SHA.
 
 Proceed only when the user asked to submit or create a PR.
 

@@ -33,9 +33,14 @@ Check whether any open PR uses this head branch as its base:
 
 Do not delete the branch when a stacked child exists.
 
-## Merge — STRUCTURAL ONLY / UNVALIDATED
+## Merge — VALIDATED 2026-08-31
 
-This state-changing half remains structural until exercised on a real ZenUml/tldraw-confluence WP1 PR.
+Exercised on PRs #6, #7, #8, #9 and #10. Merge commit strategy each time, `--delete-branch`, then the
+PR re-read to `MERGED` with `mergeCommit.oid` captured, and the exact-SHA `main` push run located from
+that oid. The staging half of this skill was also exercised: every one of those runs reported
+`Build and Unit Test: success`, and `Deploy to Forge Staging` failed for a reason outside this
+repository — see the access boundary section of `docs/ops/pipeline-port-status.md`. Report
+`MAIN CI FAILED` in that situation, as the skill already requires; do not treat it as a merge defect.
 
 Proceed only after all preconditions and merge authorization are present.
 
