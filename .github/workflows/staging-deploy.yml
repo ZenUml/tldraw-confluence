@@ -76,7 +76,7 @@ jobs:
       - name: Deploy existing app to Forge staging
         run: |
           pnpm forge:deploy:disable-analytics
-          pnpm forge:lint
+          pnpm forge:lint:tldraw:staging
           pnpm forge:deploy:tldraw:staging
         env:
           FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}

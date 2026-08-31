@@ -122,7 +122,11 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(deploy.steps.indexOf(forgeNode)).toBe(deploy.steps.indexOf(forgeDeploy) - 1);
     expect(forgeDeploy.run.trim().split('\n')).toEqual([
       'pnpm forge:deploy:disable-analytics',
-      'pnpm forge:lint',
+      // The environment must stay explicit. Bare `forge lint` falls back to the CLI's
+      // default development environment setting, which does not exist on a fresh
+      // runner, and the CLI then tries to prompt: main run 33396212142 failed with
+      // "Prompts can not be meaningfully rendered in non-TTY environments".
+      'pnpm forge:lint:tldraw:staging',
       'pnpm forge:deploy:tldraw:staging',
     ]);
     expect(forgeDeploy.env).toEqual({
@@ -283,7 +287,7 @@ describe('WP1 GitHub workflow contracts', () => {
     );
     expect(forgeDeploy.run.trim().split('\n')).toEqual([
       'pnpm forge:deploy:disable-analytics',
-      'pnpm forge:lint',
+      'pnpm forge:lint:tldraw:prod',
       'pnpm forge:deploy:tldraw:prod',
     ]);
     expect(forgeDeploy.env).toEqual({

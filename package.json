@@ -20,6 +20,8 @@
     "forge:deploy:disable-analytics": "forge settings set usage-analytics false",
     "forge:analytics:disable": "pnpm forge:deploy:disable-analytics",
     "forge:lint": "forge lint",
+    "forge:lint:tldraw:staging": "forge lint -e staging",
+    "forge:lint:tldraw:prod": "forge lint -e production",
     "test:e2e:list": "pnpm --filter @zenuml/tldraw-confluence-e2e test:list",
     "validate": "pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
     "start:whiteboard": "pnpm --dir static/spa start:local",
