@@ -48,3 +48,20 @@ updates:
       - dependency-name: vite
       - dependency-name: styled-components
       - dependency-name: tailwindcss
+
+  # The workflows pin four actions by major version. Without this block nothing ever
+  # tells us a pinned major has a security fix. Dependabot's pull requests run the
+  # same secretless `Build and Unit Test` check as any other, and the workflow contract
+  # test rejects a bump that leaves an action on a moving ref.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Australia/Melbourne
+    open-pull-requests-limit: 3
+    groups:
+      github-actions:
+        patterns:
+          - "*"
