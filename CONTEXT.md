@@ -2,50 +2,61 @@
 
 ## Stable terminology
 
-**Whiteboard macro**  
+**Whiteboard macro**
+
 The Confluence Forge macro whose manifest key is `whiteboard`. Use this in product and
 domain prose.
 
-**`tldraw`**  
+**`tldraw`**
+
 The repository, internal product/build identifier, and SDK family name. Do not use it
 as a replacement for the neutral product term when the distinction matters.
 
-**Forge app identity**  
+**Forge app identity**
+
 The existing Forge app ID, macro key, permissions, and installation lineage. These
 remain stable throughout renovation and the later `conf-app` merge.
 
-**Legacy KVS key**  
+**Legacy KVS key**
+
 The final segment of Forge `context.localId`. Current Whiteboard values are looked up
 through this key in the app-scoped Forge KVS namespace.
 
-**Legacy raw document**  
+**Legacy raw document**
+
 A stored tldraw v1-shaped object accepted directly by the current frontend when it
 has a truthy `id`. The checked-in seed document has `version: 15.5`; the current
 loader does not validate a complete schema.
 
-**Legacy compressed envelope**  
+**Legacy compressed envelope**
+
 An object with a truthy `compressedJson` property. The payload is LZUTF8 Base64 text
 that the current frontend decompresses and parses as JSON.
 
-**Unsupported residue**  
+**Unsupported residue**
+
 A stored value that cannot safely be treated as a Whiteboard document, including
 arrays written by obsolete resolver operations. Unsupported is not the same as
 missing.
 
-**Viewport**  
+**Viewport**
+
 The current app's top-level document field containing persisted Whiteboard height.
 Camera and selection state remain part of the legacy page-state structure.
 
-**Asset-bearing legacy document**  
+**Asset-bearing legacy document**
+
 A legacy document whose `assets` map is non-empty. Current runtime disables assets
 and clears the in-memory asset map after load. The WP2 target is to fail closed rather
 than make such a document editable or overwrite it.
 
-**Modern KVS slot**  
+**Modern KVS slot**
+
 A planned, version-prefixed key for a modern tldraw snapshot. It does not exist in
 WP1. Its exact key and schema belong to the WP5 child design.
 
-**Collection sentinel**  
+**Collection sentinel**
+
 The sole WP1 Playwright test. It proves config/spec discovery only and carries no
 product UI evidence.
 
