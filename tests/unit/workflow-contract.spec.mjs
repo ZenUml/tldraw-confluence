@@ -71,7 +71,7 @@ describe('WP1 GitHub workflow contracts', () => {
       needs: 'build',
       uses: './.github/workflows/staging-deploy.yml',
     });
-    expect(workflow.jobs.staging.secrets).toBeUndefined();
+    expect(workflow.jobs.staging.secrets).toBe('inherit');
     expect(workflow.jobs.staging.if).toContain("github.event_name == 'push'");
     expect(workflow.concurrency.group).toBe(
       '${{ github.workflow }}-${{ github.head_ref || github.ref_name }}',
@@ -79,9 +79,13 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(workflow.concurrency['cancel-in-progress']).toContain(
       'github.event.repository.default_branch',
     );
-    expect(source).not.toMatch(
-      /FORGE_(?:EMAIL|API_TOKEN)|ATLASSIAN_SITE|storageState|secrets:\s*inherit/u,
-    );
+    // `secrets: inherit` is permitted on the staging caller only. The credential
+    // still never reaches the PR check: the build job carries no credential env and
+    // the staging job runs only on a default-branch push. The source assertion below
+    // stays strict, so keep the credential names out of comments in this file too.
+    expect(source).not.toMatch(/FORGE_(?:EMAIL|API_TOKEN)|ATLASSIAN_SITE|storageState/u);
+    expect(occurrenceCount(source, 'secrets: inherit')).toBe(1);
+    expect(JSON.stringify(workflow.jobs.build)).not.toMatch(/secrets/u);
   });
 
   it('deploys only the validated commit to the protected staging environment', () => {
