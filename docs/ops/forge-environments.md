@@ -112,6 +112,42 @@ ancestor of the next candidate, and govern release/tag deletion and mutation.
 are an additional repository control, not a replacement for that deployment record.
 The read-only WP1 audit found immutable releases disabled.
 
+## After the app contributor role is granted
+
+Staging cannot succeed until an owner of the Whiteboard app grants a contributor role to the identity
+the pipeline uses. Everything else on the path is in place. Once the grant happens, work in this order.
+
+1. **Confirm the identity reaches the app.** With that identity's credentials in the environment:
+
+       forge install list
+
+   A denial here means the grant has not taken effect. `forge environments list` is not a substitute:
+   it succeeds without app access and cannot tell the two cases apart.
+
+2. **Match the pipeline credentials to the granted identity.** If it is not the address currently in
+   the environment variable, all four values change together:
+
+       gh variable set FORGE_EMAIL --env staging-tldraw --body '<address>' --repo ZenUml/tldraw-confluence
+       printf '%s' '<token>' | gh secret set FORGE_API_TOKEN --repo ZenUml/tldraw-confluence
+       gh variable set FORGE_EMAIL --env production-tldraw --body '<address>' --repo ZenUml/tldraw-confluence
+       printf '%s' '<token>' | gh secret set FORGE_API_TOKEN --env production-tldraw --repo ZenUml/tldraw-confluence
+
+   The staging token is at repository scope, not on the `staging-tldraw` environment. A called workflow
+   receives no environment secrets, so the caller must inherit it.
+
+3. **Re-run the newest `main` push of `Build, Test and Stage`.** Require both
+   `Build and Unit Test` and `Deploy to Forge Staging` to succeed. The first successful staging deploy
+   also creates the app's `staging` environment, which does not exist yet — `forge environments list`
+   currently returns only `production`.
+
+4. **Capture Whiteboard UI evidence against that staging deployment.** This is the WP1 gap that has
+   never been closed: the bundler migration to Vite and the Forge SDK upgrade are runtime changes that
+   no rendered-UI observation covers. A build passing and unit tests passing are not UI evidence.
+
+5. **Only then consider production.** It stays blocked by `TLDRAW_PRODUCTION_RELEASE_ENABLED` and
+   `TLDRAW_BRAND_APPROVED`, both unset, and by the branding, fixture, PVT, and approval gates named
+   above. Set those two variables at repository scope, never on an environment.
+
 ## Deploy versus install
 
 Normal staging and production delivery runs authenticated `forge lint` followed by
