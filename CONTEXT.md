@@ -60,6 +60,35 @@ WP1. Its exact key and schema belong to the WP5 child design.
 The sole WP1 Playwright test. It proves config/spec discovery only and carries no
 product UI evidence.
 
+**Credential guard**
+
+The presence check that runs before the Forge CLI in both deploy jobs. It reports
+presence only — never a value, a length, or a prefix — because this repository is
+public and its job logs are public. It answers "did the credential resolve", not "may
+this identity deploy".
+
+**Tip guard**
+
+The default-branch tip check in the staging job. A commit that is no longer the tip
+fails there and is not deployed. That red is the guard working, not a deployment
+fault; two merges in quick succession always produce one.
+
+**App contributor role**
+
+Atlassian's per-app permission. An identity that authenticates, passes `forge whoami`,
+and lints cleanly may still hold no role on a given app. `forge install list` is the
+discriminating probe; `forge environments list` succeeds without the role and cannot
+tell the two cases apart.
+
+**Called-workflow secret boundary**
+
+A workflow invoked with `uses:` receives its environment's variables and protection
+rules, but not its secrets. Measured on main run 33395382680, which reported the Forge
+email present and the Forge token absent from one job declaring
+`environment: staging-tldraw`. The staging token therefore lives at repository scope
+and the caller inherits it; the production job, being a normal job, reads both from its
+own environment.
+
 ## Relationships
 
 - One macro instance resolves one legacy KVS key from its Forge context.
@@ -92,6 +121,9 @@ about the WP1 runtime.
 - Calling the checked-in seed document a verified empty board.
 - Treating an unsupported or failed read as missing.
 - Describing the modern slot or `conf-app` variant as already implemented.
+- Calling an authenticated Forge identity one that can deploy this app.
+- Reading a superseded-commit failure in the staging job as a deployment fault.
+- Describing the staging Forge token as an environment secret; it is repository-scoped.
 
 See the
 [approved renovation design](docs/superpowers/specs/2026-08-31-tldraw-confluence-renovation-design.md)
