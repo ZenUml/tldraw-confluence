@@ -442,3 +442,71 @@ describe('WP1 GitHub workflow contracts', () => {
     );
   });
 });
+
+// Cross-workflow structural guards. These hold for every workflow in the repository,
+// so a new one cannot regress on them silently. Each was verified by mutation: see
+// the run journal for 2026-08-31.
+describe('workflow structural guards', () => {
+  const workflowNames = fs
+    .readdirSync(workflowDirectory)
+    .filter((name) => name.endsWith('.yml'))
+    .sort();
+
+  function everyJob() {
+    return workflowNames.flatMap((name) => {
+      const { workflow } = readWorkflow(name);
+      return Object.entries(workflow.jobs ?? {}).map(([id, job]) => ({ name, id, job, workflow }));
+    });
+  }
+
+  it('covers every workflow file in the repository', () => {
+    expect(workflowNames).toEqual([
+      'build-test-deploy.yml',
+      'prepare-draft-release.yml',
+      'release.yml',
+      'staging-deploy.yml',
+    ]);
+  });
+
+  it('bounds every job that runs steps', () => {
+    for (const { name, id, job } of everyJob()) {
+      if (job.uses) continue;
+      expect(job['timeout-minutes'], `${name}:${id}`).toBeTypeOf('number');
+    }
+  });
+
+  it('pins every action to a major version or a full commit SHA', () => {
+    for (const { name, id, job } of everyJob()) {
+      for (const step of job.steps ?? []) {
+        if (!step.uses) continue;
+        expect(step.uses, `${name}:${id}`).toMatch(/@(?:v\d+|[0-9a-f]{40})$/u);
+      }
+    }
+  });
+
+  // A `${{ }}` expansion inside a run body is substituted before the shell sees it, so
+  // any value carrying shell metacharacters executes. Values must arrive through env.
+  it('never interpolates an expression into a run body', () => {
+    for (const { name, id, job } of everyJob()) {
+      for (const step of job.steps ?? []) {
+        expect(step.run ?? '', `${name}:${id} — ${step.name ?? '?'}`).not.toMatch(/\$\{\{/u);
+      }
+    }
+  });
+
+  it('gives every credential-carrying step an explicit bash shell', () => {
+    for (const { name, id, job } of everyJob()) {
+      for (const step of job.steps ?? []) {
+        if (!/FORGE_(?:EMAIL|API_TOKEN)/u.test(JSON.stringify(step.env ?? {}))) continue;
+        expect(step.shell, `${name}:${id} — ${step.name ?? '?'}`).toBe('bash');
+      }
+    }
+  });
+
+  it('keeps every Forge credential out of a job-level or workflow-level env', () => {
+    for (const { name, id, job, workflow } of everyJob()) {
+      expect(JSON.stringify(job.env ?? {}), `${name}:${id}`).not.toMatch(/FORGE_API_TOKEN/u);
+      expect(JSON.stringify(workflow.env ?? {}), name).not.toMatch(/FORGE_API_TOKEN/u);
+    }
+  });
+});
