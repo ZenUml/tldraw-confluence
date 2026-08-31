@@ -4,7 +4,7 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@forge/bridge": "2.5.0",
+    "@forge/bridge": "5.16.0",
     "@tldraw/tldraw": "1.26.2",
     "lzutf8": "0.6.3",
     "mixpanel-browser": "2.47.0",

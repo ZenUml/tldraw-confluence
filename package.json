@@ -49,8 +49,8 @@
     "yaml": "2.9.0"
   },
   "dependencies": {
-    "@forge/api": "2.22.1",
-    "@forge/resolver": "1.4.6",
+    "@forge/api": "6.4.3",
+    "@forge/resolver": "1.7.1",
     "@forge/ui": "1.5.0"
   }
 }
