@@ -177,7 +177,7 @@ Malformed values inside the frozen surface are `invalid`. The schema is closed: 
 - Camera `zoom` is finite and within the v1 clamp range `[0.1, 5]`.
 - `selectedIds` is an array of unique same-page shape IDs. Optional `pointedId`, `hoveredId`, and `editingId` are null/absent or resolve to a same-page shape; optional `bindingId` resolves to a same-page binding. Optional `brush` is null/absent or the exact finite `minX`, `minY`, `maxX`, `maxY`, `width`, `height`, and optional `rotation` bounds object.
 - Codec validation preserves the complete v1 page state.
-- The editor fingerprint excludes only ephemeral editor state that the SDK resets during mount: `selectedIds`, `brush`, `pointedId`, `hoveredId`, `editingId`, and `bindingId`. Camera remains durable view state and is compared separately from board content.
+- The editor fingerprint excludes only ephemeral editor state that the SDK resets during mount: `selectedIds`, `pointedId`, `hoveredId`, `editingId`, and `bindingId`. `brush` remains in the editor fingerprint because the bundled v1.26.2 cleanup path preserves a truthy brush; camera also remains durable view state and is compared separately from board content.
 - Top-level `viewport` has exactly one field, `height`. It is optional; when present, height is finite and within `[200, 4096]` CSS pixels. An existing out-of-range value is `unsupported / viewport_height_invalid`; it is never silently clamped and saved.
 - A missing viewport uses height `400` in memory only. Loading does not add or persist it.
 - The UI enables bottom-edge resizing only; horizontal/right-edge resizing is removed because width is host-controlled and was never persisted. Resize persistence occurs only after an explicit completed gesture.
@@ -206,7 +206,7 @@ The exact path from storage to editor is deliberately observable:
 6. Initial `onPersist` calls and later callbacks equal to the last confirmed editor fingerprint are ignored.
 7. After an explicit edit or completed resize, clone the current editor document, attach the current valid viewport height without mutating `app.document`, validate it again, then enqueue that immutable snapshot.
 
-The SDK-cleared page-state fields are the only mount differences ignored by the editor fingerprint. They remain in `original` for codec round-trip/recovery purposes, but a later explicit user save may persist the editor's current ephemeral state. No unknown field, asset, graph repair, label rewrite, geometry change, or version change is ignored.
+The SDK-cleared page-state fields are the only mount differences ignored by the editor fingerprint. They remain in `original` for codec round-trip/recovery purposes, but a later explicit user save may persist the editor's current ephemeral state. `brush` is not in this exception because the audited v1.26.2 cleanup path does not clear it. No unknown field, asset, graph repair, label rewrite, geometry change, or version change is ignored.
 
 ## 5. Fingerprints and loss detection
 

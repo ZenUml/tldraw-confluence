@@ -447,12 +447,12 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(rootPackage.scripts['forge:deploy:disable-analytics']).toBe(
       'forge settings set usage-analytics false',
     );
-    expect(rootPackage.scripts['forge:lint']).toBe('forge lint');
+    expect(rootPackage.scripts['forge:lint']).toBe('pnpm build:codec && forge lint');
     expect(rootPackage.scripts['forge:deploy:tldraw:staging']).toBe(
-      'forge deploy -e staging --non-interactive --verbose',
+      'pnpm build:codec && forge deploy -e staging --non-interactive --verbose',
     );
     expect(rootPackage.scripts['forge:deploy:tldraw:prod']).toBe(
-      'forge deploy -e production --non-interactive --verbose',
+      'pnpm build:codec && forge deploy -e production --non-interactive --verbose',
     );
     expect(rootPackage.scripts['forge:deploy:tldraw:production']).toBe(
       'pnpm forge:deploy:tldraw:prod',

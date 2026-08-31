@@ -1,5 +1,6 @@
 packages:
   - .
+  - packages/*
   - static/spa
   - atlassian-migration
   - tests/e2e-tests

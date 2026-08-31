@@ -12,22 +12,24 @@
     "node": "22.22.3"
   },
   "scripts": {
+    "check:resolutions": "node scripts/check-package-manager-resolutions.mjs",
     "lint": "eslint .",
-    "test:unit": "vitest run",
-    "build:whiteboard": "pnpm --dir static/spa build",
+    "build:codec": "pnpm --filter @zenuml/whiteboard-codec build",
+    "test:unit": "pnpm build:codec && vitest run",
+    "build:whiteboard": "pnpm build:codec && pnpm --dir static/spa build",
     "validate:resource-output": "node scripts/validate-resource-output.mjs",
     "validate:manifest": "node scripts/validate-forge-manifest.mjs",
     "forge:deploy:disable-analytics": "forge settings set usage-analytics false",
     "forge:analytics:disable": "pnpm forge:deploy:disable-analytics",
-    "forge:lint": "forge lint",
-    "forge:lint:tldraw:staging": "forge lint -e staging",
-    "forge:lint:tldraw:prod": "forge lint -e production",
+    "forge:lint": "pnpm build:codec && forge lint",
+    "forge:lint:tldraw:staging": "pnpm build:codec && forge lint -e staging",
+    "forge:lint:tldraw:prod": "pnpm build:codec && forge lint -e production",
     "test:e2e:list": "pnpm --filter @zenuml/tldraw-confluence-e2e test:list",
-    "validate": "pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
-    "start:whiteboard": "pnpm --dir static/spa start:local",
-    "forge:deploy:tldraw:development": "forge deploy -e development --non-interactive --verbose",
-    "forge:deploy:tldraw:staging": "forge deploy -e staging --non-interactive --verbose",
-    "forge:deploy:tldraw:prod": "forge deploy -e production --non-interactive --verbose",
+    "validate": "pnpm check:resolutions && pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
+    "start:whiteboard": "pnpm build:codec && pnpm --dir static/spa start:local",
+    "forge:deploy:tldraw:development": "pnpm build:codec && forge deploy -e development --non-interactive --verbose",
+    "forge:deploy:tldraw:staging": "pnpm build:codec && forge deploy -e staging --non-interactive --verbose",
+    "forge:deploy:tldraw:prod": "pnpm build:codec && forge deploy -e production --non-interactive --verbose",
     "forge:deploy:tldraw:production": "pnpm forge:deploy:tldraw:prod",
     "forge:install:tldraw:development": "pnpm forge:deploy:disable-analytics && forge install --site \"$ATLASSIAN_SITE\" --product confluence -e development --non-interactive --verbose",
     "forge:install:tldraw:staging": "pnpm forge:deploy:disable-analytics && forge install --site \"$ATLASSIAN_SITE\" --product confluence -e staging --non-interactive --verbose",
@@ -38,7 +40,7 @@
     "forge:bootstrap:tldraw:development": "pnpm forge:install:tldraw:development",
     "forge:bootstrap:tldraw:staging": "pnpm forge:install:tldraw:staging",
     "forge:bootstrap:tldraw:production": "pnpm forge:install:tldraw:production",
-    "forge:tunnel:tldraw": "pnpm forge:deploy:disable-analytics && forge tunnel -e development"
+    "forge:tunnel:tldraw": "pnpm build:codec && pnpm forge:deploy:disable-analytics && forge tunnel -e development"
   },
   "devDependencies": {
     "@eslint/js": "9.21.0",
@@ -53,6 +55,7 @@
   "dependencies": {
     "@forge/api": "6.4.3",
     "@forge/resolver": "1.7.1",
-    "@forge/ui": "1.5.0"
+    "@forge/ui": "1.5.0",
+    "@zenuml/whiteboard-codec": "workspace:*"
   }
 }

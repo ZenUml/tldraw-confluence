@@ -24,6 +24,9 @@ importers:
       '@forge/ui':
         specifier: 1.5.0
         version: 1.5.0
+      '@zenuml/whiteboard-codec':
+        specifier: workspace:*
+        version: link:packages/whiteboard-codec
     devDependencies:
       '@eslint/js':
         specifier: 9.21.0
@@ -56,6 +59,16 @@ importers:
         specifier: 0.6.3
         version: 0.6.3
 
+  packages/whiteboard-codec:
+    dependencies:
+      lzutf8:
+        specifier: 0.6.3
+        version: 0.6.3
+    devDependencies:
+      typescript:
+        specifier: 4.9.3
+        version: 4.9.3
+
   static/spa:
     dependencies:
       '@forge/bridge':
@@ -64,6 +77,9 @@ importers:
       '@tldraw/tldraw':
         specifier: 1.26.2
         version: 1.26.2(@types/react@18.0.25)(immer@9.0.16)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@4.9.3)
+      '@zenuml/whiteboard-codec':
+        specifier: workspace:*
+        version: link:../../packages/whiteboard-codec
       lzutf8:
         specifier: 0.6.3
         version: 0.6.3
