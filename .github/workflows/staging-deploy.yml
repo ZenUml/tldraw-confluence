@@ -61,7 +61,10 @@ jobs:
           echo "FORGE_EMAIL present: $EMAIL_PRESENT"
           echo "FORGE_API_TOKEN present: $TOKEN_PRESENT"
           if [ "$EMAIL_PRESENT" != true ] || [ "$TOKEN_PRESENT" != true ]; then
-            echo "Forge credentials did not resolve for environment staging-tldraw." >&2
+            echo "Forge credentials did not resolve." >&2
+            echo "The email comes from the staging-tldraw environment variable." >&2
+            echo "The token comes from the repository secret that the caller inherits," >&2
+            echo "because a called workflow receives no environment secrets." >&2
             exit 1
           fi
 
