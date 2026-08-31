@@ -122,14 +122,27 @@ describe('WP1 GitHub workflow contracts', () => {
       FORGE_EMAIL: '${{ vars.FORGE_EMAIL }}',
       FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
     });
-    expect(occurrenceCount(source, 'vars.FORGE_EMAIL')).toBe(1);
-    expect(occurrenceCount(source, 'secrets.FORGE_API_TOKEN')).toBe(1);
+    const credentialGuard = stepByName(deploy, 'Verify Forge credentials are present');
+    expect(credentialGuard.env).toEqual({
+      FORGE_EMAIL: '${{ vars.FORGE_EMAIL }}',
+      FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
+    });
+    // The guard reports presence only. A public job log must never carry the value,
+    // its length, or a prefix of it.
+    expect(credentialGuard.run).not.toMatch(/\$\{#FORGE_(?:EMAIL|API_TOKEN)/u);
+    expect(credentialGuard.run).not.toMatch(
+      /(?:echo|printf)[^\n]*\$\{?FORGE_(?:EMAIL|API_TOKEN)/u,
+    );
+    expect(credentialGuard.run).toContain('FORGE_API_TOKEN present:');
+    expect(deploy.steps.indexOf(credentialGuard)).toBeLessThan(deploy.steps.indexOf(forgeNode));
+    expect(occurrenceCount(source, 'vars.FORGE_EMAIL')).toBe(2);
+    expect(occurrenceCount(source, 'secrets.FORGE_API_TOKEN')).toBe(2);
     expect(source).not.toMatch(/secrets:\s*inherit/u);
     expect(
       deploy.steps.filter((step) =>
         JSON.stringify(step.env ?? {}).match(/FORGE_(?:EMAIL|API_TOKEN)/u),
       ),
-    ).toEqual([forgeDeploy]);
+    ).toEqual([credentialGuard, forgeDeploy]);
     expect(stepByName(deploy, 'Upload staging inputs').uses).toBe('actions/upload-artifact@v6');
     expect(source).not.toMatch(/forge install|cloudflare|wrangler|sed.+manifest|APP_ID=/iu);
   });

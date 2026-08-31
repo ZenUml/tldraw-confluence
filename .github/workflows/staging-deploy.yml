@@ -46,6 +46,25 @@ jobs:
           test "$(git rev-parse HEAD)" = \
             "$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")"
 
+      # Forge reports a missing credential as an opaque "Not logged in". Fail here
+      # instead, with a message that names the environment. This job's log is public,
+      # so report presence only: never a value, a length, or a prefix.
+      - name: Verify Forge credentials are present
+        env:
+          FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
+          FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${FORGE_EMAIL:-}" ]; then EMAIL_PRESENT=true; else EMAIL_PRESENT=false; fi
+          if [ -n "${FORGE_API_TOKEN:-}" ]; then TOKEN_PRESENT=true; else TOKEN_PRESENT=false; fi
+          echo "FORGE_EMAIL present: $EMAIL_PRESENT"
+          echo "FORGE_API_TOKEN present: $TOKEN_PRESENT"
+          if [ "$EMAIL_PRESENT" != true ] || [ "$TOKEN_PRESENT" != true ]; then
+            echo "Forge credentials did not resolve for environment staging-tldraw." >&2
+            exit 1
+          fi
+
       # Keep the repository build on Node 22.22.3. Only the Forge CLI switches
       # to Node 20, matching conf-app's workaround for intermittent node-fetch
       # "Premature close" failures while Forge fetches platform schemas.
