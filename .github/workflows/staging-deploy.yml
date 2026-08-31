@@ -43,8 +43,16 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin \
             "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
-          test "$(git rev-parse HEAD)" = \
-            "$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")"
+          HEAD_SHA=$(git rev-parse HEAD)
+          TIP_SHA=$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")
+          if [ "$HEAD_SHA" != "$TIP_SHA" ]; then
+            echo "This commit is no longer the ${DEFAULT_BRANCH} tip, so it is not deployed." >&2
+            echo "  this run: $HEAD_SHA" >&2
+            echo "  current tip: $TIP_SHA" >&2
+            echo "A later merge superseded it. Read the run for the current tip instead." >&2
+            echo "This is the guard working: staging only ever receives the tip." >&2
+            exit 1
+          fi
 
       # Forge reports a missing credential as an opaque "Not logged in". Fail here
       # instead, with a message that names the environment. This job's log is public,
