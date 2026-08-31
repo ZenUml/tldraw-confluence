@@ -26,13 +26,13 @@ Status vocabulary:
 | Production release | Adapt | STRUCTURAL ONLY | Disabled until branding, fixture, PVT, and two independent publication/environment approval gates close; normal releases enforce predecessor ancestry |
 | Production lineage authority | Adapt | BLOCKED | Normal workflow races are guarded, but remote releases/tags are mutable and immutable releases are disabled; production enablement needs a tamper-resistant last-successful-production SHA record plus deletion/mutation governance |
 | `validate-branch` | Adapt | LOCAL | Skill contract passes and its first locally scoped, non-deploying path, `pnpm validate`, succeeds; UI is correctly `SKIPPED — no runtime change` |
-| `forge-tunnel` | Adapt | BLOCKED | Skill schema and command contract pass; Forge identity/install preflight needs local credentials not present in this checkout |
-| `spot-check` | Adapt | STRUCTURAL ONLY | Skill schema and evidence rules pass; no approved fixture or runtime change was exercised |
+| `forge-tunnel` | Adapt | BLOCKED | Skill schema and command contract pass; authenticated identity and environment/version discovery work, but Atlassian explicitly denies original-app install access, proving the available identity is not an app contributor |
+| `spot-check` | Adapt | LIVE | A published Marketplace 3.4.0 baseline was exercised on an approved non-production synthetic fixture: create/edit/save/reload passed, and a fresh-`localId` same-page clone remained storage-isolated through independent edits and reloads; this does not claim the WP1 branch artifact was deployed |
 | PR lifecycle skill set | Adapt | LOCAL | Schemas and read-only GitHub discovery/help pass; all state-changing halves remain structural |
 | Dependency updates | Adapt | LOCAL | Weekly dev-tool-only Dependabot contract present; product/runtime packages are excluded in WP1 |
 | License metadata alignment | Defer | DEFERRED | `LICENSE.md` is Apache-2.0 while existing package metadata says MIT/ISC; owner/legal confirmation required before changing either |
 | `release-app` | Adapt | STRUCTURAL ONLY | Single-app fresh exact-SHA draft → required delta notes → explicit publish → independent production review → deploy → PVT → delta spot-check contract exists; its fail-closed WP1 gate prevents publication |
-| Whiteboard smoke/PVT | Adapt | BLOCKED | Single-app PVT contract exists, but execution needs an approved production fixture and visible build identity from WP2 |
+| Whiteboard smoke/PVT | Adapt | BLOCKED | The non-production Marketplace baseline is live, but formal release PVT still needs an approved production fixture, visible build identity, and contributor access capable of deploying the exact release artifact |
 | `check-version` | Defer | DEFERRED | Needs a visible release tag/SHA |
 | `health-check` | Defer | DEFERRED | Needs deployed lifecycle events and a baseline |
 | Cloudflare, D1, paywall, product-variant pipeline | Skip | SKIPPED | No equivalent infrastructure in this app |
@@ -68,9 +68,11 @@ The corresponding new build nodes are covered only through those exact edge entr
 
 The isolated npm and clean pnpm builds each contain 14 files. Their final filenames and SHA values differ because webpack chunk/module IDs follow the install layout. After normalizing package paths, all 547 JavaScript and one CSS source-map modules have the same source set and contents; only two webpack-generated chunk-loading/startup runtime sections differ. This evidence narrows risk but does not waive the frozen graph contract.
 
-## Forge lint authentication boundary
+## Forge lint and original-app access boundary
 
-Forge CLI 12.20.1 requires authentication before `forge lint`; no authless CLI flag exists. The local checkout has no Forge credentials, so the official command is correctly recorded as locally `BLOCKED`, not failed or bypassed. Pull-request validation receives no Forge credentials.
+Forge CLI 12.20.1 requires authentication before `forge lint`; no authless CLI flag exists. An existing gitignored workspace credential was supplied explicitly for a read-only audit without copying it into this repository. With that identity, official `forge lint` passes with zero errors and the same six existing warnings reported by the structural validator. Pull-request validation still receives no Forge credentials.
+
+That identity is not a contributor to the original Whiteboard Forge app. Environment and version metadata are visible, but `forge install list --json` is explicitly denied for this app while the same identity succeeds against an app where it is a contributor. Atlassian documents that every app contributor can view installations, so the install-list denial is the decisive boundary; metadata visibility is not evidence of deploy authority. Exact-branch tunnel/deploy validation remains blocked until an original-app owner grants the identity an appropriate [contributor role](https://developer.atlassian.com/platform/forge/contributors/). No deploy, registration, installation, or upgrade was attempted during the audit.
 
 The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `validate(false, manifestPath)` through `pnpm validate:manifest`. The command fails only on diagnostics whose level is `error`; the unchanged manifest currently reports zero errors and six existing warnings. This structural validator is narrower than full Forge CLI lint. Protected staging and production steps inject Forge credentials only into one step. That step disables Forge analytics once, runs raw `pnpm forge:lint`, then the raw environment deploy script. Build/validation stays on Node 22.22.3; only the Forge CLI segment switches to Node 20 to match the reference pipeline's node-fetch workaround. Those deployment paths remain `STRUCTURAL ONLY` until exercised live.
 
@@ -87,11 +89,24 @@ The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `va
 - all four workflow files plus `manifest.yml` parse as YAML, and all 16 checked local Markdown links resolve;
 - read-only GitHub repository/PR/help discovery: PASS; no workflow is registered on `main` before this branch lands;
 - remote immutable releases: disabled; authoritative production-SHA ledger: absent and required before production enablement;
-- Forge tunnel help: PASS; identity/environment/install discovery is BLOCKED because the three required local inputs are missing, and port 3000 is free;
+- Forge tunnel help: PASS; authenticated identity and environment/version discovery work, original-app install discovery is denied for lack of contributor access, and port 3000 is free;
 - guarded runtime diff against `a3393e1`: empty;
 - `git diff --check`: PASS;
-- official Forge lint: locally BLOCKED because authentication is absent; structurally required immediately before both protected deploy commands;
+- official Forge lint: PASS with zero errors and six existing warnings when the external local credential is supplied; contributor-gated tunnel/deploy operations remain BLOCKED;
 - full secretless/offline `pnpm validate`: PASS.
+
+## Atlassian non-production baseline evidence
+
+The published Marketplace 3.4.0 build was installed only on an approved team-owned, non-production Confluence tenant. A synthetic page and synthetic Whiteboard data were used; no customer or production content was changed.
+
+- A freehand stroke was created, saved, and still present after reload (`[data-shape="draw"]` count `1`).
+- An equivalent same-page copy fixture cloned the macro ADF node with a fresh `localId`. Before editing the clone, the original contained one draw shape and the clone contained none.
+- A different freehand stroke was then created in the clone. After save and reload, both macros contained exactly one draw shape, their semantic DOM fingerprints differed, and the original fingerprint was unchanged.
+- The page ADF contained two extension nodes with distinct hashed `localId` values. Raw identifiers are intentionally omitted from this public evidence register.
+- The post-reload browser error stream contained zero page errors and zero console errors. Atlassian emitted non-error warnings, so this is not a claim of a globally warning-free console.
+- Privacy-safe iframe-only screenshots have SHA-256 values `90a0f9d34338ea21f41592d9d54c112c72df6e7fb837b480f7783262e71eea26` (original before copy edit), `dc215005f4d4e207190fedb6998957d2fc5cf155ac274cf99de85286e3c0f8d8` (copy after edit/reload), and `845d0e98909b487549fec8ba9e647dc08cc527a3a7a8dddd054581046f125a47` (original after copy edit/reload). The artifacts remain outside the public repository.
+
+This proves a real Forge/Confluence persistence baseline and the storage isolation of two macro nodes whose fixture deliberately has distinct `localId` values. It does not prove that every native Confluence copy surface always generates a fresh `localId`, nor does it establish provenance for the WP1 branch artifact; those remain separate tests.
 
 ## WP1 guarded paths
 
@@ -103,7 +118,7 @@ WP1 must leave these paths byte-for-byte unchanged from approval commit `a3393e1
 - `static/spa/public/**`
 - `atlassian-migration/index.js`
 
-UI validation for WP1 tooling is `SKIPPED — no runtime change`. A staging UI claim remains PENDING until a real screenshot, snapshot, or network/resolver intercept is captured.
+UI validation for WP1 tooling remains `SKIPPED — no runtime change`. The Marketplace 3.4.0 non-production baseline above is `LIVE`, but it is not an exact-SHA staging claim. Exact-branch staging UI validation remains blocked by original-app contributor access and visible build identity.
 
 ## Existing license-metadata discrepancy
 
