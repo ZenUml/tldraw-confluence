@@ -45,3 +45,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     needs: build
     uses: ./.github/workflows/staging-deploy.yml
+    # A called workflow receives no environment secrets. Evidence: main run
+    # 33395382680 reported the Forge email variable present and the Forge API token
+    # secret absent, from one job that declared `environment: staging-tldraw`. The
+    # environment variable resolved; the environment secret did not. Only the caller
+    # can supply it, and this job runs solely on a default-branch push, so the pull
+    # request check stays credential-free.
+    secrets: inherit
