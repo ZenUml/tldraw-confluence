@@ -32,6 +32,26 @@ fresh CI runner, and the CLI then tries to prompt.
 
 ## GitHub environments
 
+### Where the production gate variables must live
+
+`TLDRAW_PRODUCTION_RELEASE_ENABLED` and `TLDRAW_BRAND_APPROVED` must be set at **repository** scope.
+
+`release.yml` reads them from two jobs with different scopes:
+
+- job `preflight` declares no `environment`, so `vars.*` resolves at repository scope only;
+- job `deploy` declares `environment: production-tldraw`, so an environment variable of the same name
+  would take precedence over the repository one.
+
+Setting them on the environment instead makes `preflight` see empty values and report
+"Production release is disabled until PVT is implemented and approved", which reads like a policy
+decision rather than a scoping mistake. Both mismatch directions currently fail closed, so production
+stays blocked either way; the cost is a misleading message, not an unsafe deploy.
+
+A contract test pins `preflight.environment` as undefined, so the asymmetry cannot be removed by
+accident on the workflow side. GitHub-side variable scope is not visible to a unit test, which is why
+it is written down here.
+
+
 | Environment | Purpose | Required configuration |
 |---|---|---|
 | `staging-tldraw` | Lint and deploy the tested SHA to Forge staging | Allow only `main`; `FORGE_EMAIL` variable and `FORGE_API_TOKEN` secret, both exposed only to the lint-and-deploy step |
@@ -44,7 +64,26 @@ self-review listed above.
 Protect `main` with the authoritative `Build and Unit Test` check after that check has
 run on the Draft PR. Do not merge while these controls are absent.
 
-A read-only audit on 2026-08-31 found zero GitHub environments, zero repository-level
+### Implemented state, 2026-08-31
+
+All three environments now exist and carry the deployment restrictions above:
+`staging-tldraw` and `staging-tldraw-release` allow only `main`; `production-tldraw` allows only
+`v*-tldraw` tags. `staging-tldraw-release` and `production-tldraw` each require a review, and
+`production-tldraw` holds a `FORGE_EMAIL` variable and a `FORGE_API_TOKEN` secret.
+
+Two controls from the table above are still open, and both need a decision that configuration alone
+cannot supply:
+
+- **Prevent self-review is off.** Only one reviewer is registered. Turning it on with a single
+  reviewer produces a gate nobody can pass. It needs a second reviewer identity first.
+- **`main` has no branch protection.** The authoritative `Build and Unit Test` check is not required,
+  and direct pushes to `main` are not blocked.
+
+The repository-scoped `FORGE_API_TOKEN` used by staging belongs to an identity that is not a
+contributor to the app; see the access boundary section in `pipeline-port-status.md`. It authenticates,
+so it proves the credential path, but it cannot deploy.
+
+An earlier read-only audit the same day found zero GitHub environments, zero repository-level
 Actions variables/secrets, and no `main` branch protection or ruleset in the remote repository.
 That is an external configuration blocker for merge and live staging, not a reason to
 weaken the checked-in workflows. The staging reusable workflow deliberately has no
