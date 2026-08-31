@@ -27,7 +27,7 @@ Status vocabulary:
 | Production lineage authority | Adapt | BLOCKED | Normal workflow races are guarded, but remote releases/tags are mutable and immutable releases are disabled; production enablement needs a tamper-resistant last-successful-production SHA record plus deletion/mutation governance |
 | `validate-branch` | Adapt | LOCAL | Skill contract passes and its first locally scoped, non-deploying path, `pnpm validate`, succeeds; UI is correctly `SKIPPED — no runtime change` |
 | `forge-tunnel` | Adapt | BLOCKED | Skill schema and command contract pass; authenticated identity and environment/version discovery work, but Atlassian explicitly denies original-app install access, proving the available identity is not an app contributor |
-| `spot-check` | Adapt | LIVE | A published Marketplace 3.4.0 baseline was exercised on an approved non-production synthetic fixture: create/edit/save/reload passed, and a fresh-`localId` same-page clone remained storage-isolated through independent edits and reloads; this does not claim the WP1 branch artifact was deployed |
+| `spot-check` | Adapt | LIVE | A published Marketplace 3.4.0 baseline was exercised on an approved non-production synthetic fixture: create/edit/save/reload passed, and a fresh-`localId` same-page clone produced independent persisted rendered state through edits and reloads; this does not claim the WP1 branch artifact was deployed |
 | PR lifecycle skill set | Adapt | LOCAL | Schemas and read-only GitHub discovery/help pass; all state-changing halves remain structural |
 | Dependency updates | Adapt | LOCAL | Weekly dev-tool-only Dependabot contract present; product/runtime packages are excluded in WP1 |
 | License metadata alignment | Defer | DEFERRED | `LICENSE.md` is Apache-2.0 while existing package metadata says MIT/ISC; owner/legal confirmation required before changing either |
@@ -100,13 +100,13 @@ The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `va
 The published Marketplace 3.4.0 build was installed only on an approved team-owned, non-production Confluence tenant. A synthetic page and synthetic Whiteboard data were used; no customer or production content was changed.
 
 - A freehand stroke was created, saved, and still present after reload (`[data-shape="draw"]` count `1`).
-- An equivalent same-page copy fixture cloned the macro ADF node with a fresh `localId`. Before editing the clone, the original contained one draw shape and the clone contained none.
-- A different freehand stroke was then created in the clone. After save and reload, both macros contained exactly one draw shape, their semantic DOM fingerprints differed, and the original fingerprint was unchanged.
+- An equivalent same-page copy fixture cloned the macro ADF node with a fresh `localId`. Before editing the clone, the current viewport rendered one `[data-shape="draw"]` element in the original and none in the clone.
+- A different freehand stroke was then created in the clone. After save and reload, each current viewport rendered exactly one visible draw element, their semantic DOM fingerprints differed, and the original rendered fingerprint was unchanged. This is deliberately a rendered-state assertion, not a count of off-viewport records in the full tldraw document.
 - The page ADF contained two extension nodes with distinct hashed `localId` values. Raw identifiers are intentionally omitted from this public evidence register.
 - The post-reload browser error stream contained zero page errors and zero console errors. Atlassian emitted non-error warnings, so this is not a claim of a globally warning-free console.
 - Privacy-safe iframe-only screenshots have SHA-256 values `90a0f9d34338ea21f41592d9d54c112c72df6e7fb837b480f7783262e71eea26` (original before copy edit), `dc215005f4d4e207190fedb6998957d2fc5cf155ac274cf99de85286e3c0f8d8` (copy after edit/reload), and `845d0e98909b487549fec8ba9e647dc08cc527a3a7a8dddd054581046f125a47` (original after copy edit/reload). The artifacts remain outside the public repository.
 
-This proves a real Forge/Confluence persistence baseline and the storage isolation of two macro nodes whose fixture deliberately has distinct `localId` values. It does not prove that every native Confluence copy surface always generates a fresh `localId`, nor does it establish provenance for the WP1 branch artifact; those remain separate tests.
+This proves a real Forge/Confluence persistence baseline and independent persisted rendered state for two macro nodes whose fixture deliberately has distinct `localId` values. It does not prove that every native Confluence copy surface always generates a fresh `localId`, inspect every off-viewport document record, or establish provenance for the WP1 branch artifact; those remain separate tests.
 
 ## WP1 guarded paths
 
