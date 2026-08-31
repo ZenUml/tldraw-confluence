@@ -325,6 +325,7 @@ jobs:
           fi
 
       - name: Deploy existing app to Forge production
+        shell: bash
         run: |
           pnpm forge:deploy:disable-analytics
           pnpm forge:lint:tldraw:prod

@@ -101,6 +101,7 @@ jobs:
           exit 1
 
       - name: Deploy existing app to Forge staging
+        shell: bash
         run: |
           pnpm forge:deploy:disable-analytics
           pnpm forge:lint:tldraw:staging
