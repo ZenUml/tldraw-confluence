@@ -1,0 +1,185 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  preflight:
+    name: Validate production release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      release_sha: ${{ steps.provenance.outputs.release_sha }}
+    env:
+      RELEASE_ENABLED: ${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}
+      BRAND_APPROVED: ${{ vars.TLDRAW_BRAND_APPROVED }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_IS_DRAFT: ${{ github.event.release.draft }}
+      RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Enforce production gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_ENABLED" != "true" ]]; then
+            echo "Production release is disabled until PVT is implemented and approved." >&2
+            exit 1
+          fi
+          if [[ "$BRAND_APPROVED" != "true" ]]; then
+            echo "Production release is blocked by the branding gate." >&2
+            exit 1
+          fi
+          if [[ "$RELEASE_IS_DRAFT" != "false" || "$RELEASE_IS_PRERELEASE" != "false" ]]; then
+            echo "Production accepts only a published stable release." >&2
+            exit 1
+          fi
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{6}-tldraw$ ]]; then
+            echo "Unsupported release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: Checkout release tag for verification
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Verify staged release provenance
+        id: provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RELEASE_SHA=$(git rev-parse "${RELEASE_TAG}^{commit}")
+          git fetch --no-tags origin \
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+          if ! git merge-base --is-ancestor "$RELEASE_SHA" "origin/${DEFAULT_BRANCH}"; then
+            echo "Release tag is not reachable from the default branch." >&2
+            exit 1
+          fi
+
+          PROVENANCE=$(jq -er '
+            (.release.body // "")
+            | capture("^Staging run ID: (?<run>[0-9]+)\\nUI evidence SHA-256: (?<hash>[0-9a-f]{64})\\n?$")
+          ' "$GITHUB_EVENT_PATH") || {
+            echo "Release notes do not contain the exact staged-run and evidence contract." >&2
+            exit 1
+          }
+          MAIN_RUN_ID=$(jq -r '.run' <<< "$PROVENANCE")
+
+          gh run view "$MAIN_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json conclusion,event,headBranch,headSha,jobs,workflowName \
+            > "$RUNNER_TEMP/main-run.json"
+
+          jq -e \
+            --arg sha "$RELEASE_SHA" \
+            --arg branch "$DEFAULT_BRANCH" \
+            '.conclusion == "success"
+             and .event == "push"
+             and .headBranch == $branch
+             and .headSha == $sha
+             and .workflowName == "Build, Test and Stage"
+             and any(.jobs[]; (.name | endswith("Deploy to Forge Staging")) and .conclusion == "success")' \
+            "$RUNNER_TEMP/main-run.json" > /dev/null
+
+          echo "release_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.22.3
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release tag
+        run: pnpm validate
+
+  deploy:
+    name: Deploy to Forge Production
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: forge-production-tldraw
+      cancel-in-progress: false
+    environment:
+      name: production-tldraw
+    steps:
+      - name: Checkout verified release commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.preflight.outputs.release_sha }}
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.22.3
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Rebuild and validate release commit
+        run: pnpm validate
+
+      - name: Recheck production authorization after approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ENABLED: ${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}
+          BRAND_APPROVED: ${{ vars.TLDRAW_BRAND_APPROVED }}
+          RELEASE_ID: ${{ github.event.release.id }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_SHA: ${{ needs.preflight.outputs.release_sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RELEASE_ENABLED" = "true"
+          test "$BRAND_APPROVED" = "true"
+
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            > "$RUNNER_TEMP/release-after-approval.json"
+          jq -e --arg tag "$RELEASE_TAG" \
+            '.draft == false and .prerelease == false and .tag_name == $tag' \
+            "$RUNNER_TEMP/release-after-approval.json" > /dev/null
+
+          git fetch --no-tags origin \
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}" \
+            "+refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          test "$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")" = "$RELEASE_SHA"
+          git merge-base --is-ancestor \
+            "$RELEASE_SHA" "refs/remotes/origin/${DEFAULT_BRANCH}"
+
+      - name: Deploy existing app to Forge production
+        run: pnpm forge:lint && pnpm forge:deploy:tldraw:production
+        env:
+          FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
+          FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+
+      - name: Upload production inputs
+        uses: actions/upload-artifact@v6
+        with:
+          name: whiteboard-production-${{ github.event.release.tag_name }}
+          path: |
+            manifest.yml
+            static/spa/build
+          if-no-files-found: error
+          retention-days: 30

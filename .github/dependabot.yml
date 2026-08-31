@@ -1,0 +1,49 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Australia/Melbourne
+    open-pull-requests-limit: 5
+    groups:
+      routine-development-tools:
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
+        exclude-patterns:
+          - "@forge/api"
+          - "@forge/bridge"
+          - "@forge/resolver"
+          - "@forge/ui"
+          - "@tldraw/tldraw"
+          - autoprefixer
+          - lzutf8
+          - mixpanel-browser
+          - postcss
+          - react
+          - react-dom
+          - react-rnd
+          - react-scripts
+          - styled-components
+          - tailwindcss
+    ignore:
+      - dependency-name: "@forge/api"
+      - dependency-name: "@forge/bridge"
+      - dependency-name: "@forge/resolver"
+      - dependency-name: "@forge/ui"
+      - dependency-name: "@tldraw/tldraw"
+      - dependency-name: autoprefixer
+      - dependency-name: lzutf8
+      - dependency-name: mixpanel-browser
+      - dependency-name: postcss
+      - dependency-name: react
+      - dependency-name: react-dom
+      - dependency-name: react-rnd
+      - dependency-name: react-scripts
+      - dependency-name: styled-components
+      - dependency-name: tailwindcss
