@@ -25,7 +25,10 @@ Local preflight may inspect authentication, environments, installations, and tun
 check uses `@forge/manifest` and fails on error-level structural findings. This is not
 the complete Forge CLI `forge lint`: authenticated staging and production deployment
 steps switch only the Forge CLI segment to Node 20, disable analytics once, run raw
-`pnpm forge:lint`, then run the raw environment deploy script.
+`pnpm forge:lint:tldraw:staging` or `pnpm forge:lint:tldraw:prod`, then run the raw
+environment deploy script. The environment must be explicit: bare `forge lint` falls
+back to the CLI's default development environment setting, which does not exist on a
+fresh CI runner, and the CLI then tries to prompt.
 
 ## GitHub environments
 

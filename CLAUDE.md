@@ -128,9 +128,13 @@ pnpm validate
 is intentionally narrower than the official Forge CLI lint and must not be described
 as complete platform validation.
 
-Run official `pnpm forge:lint` separately only on a local machine with existing Forge
-credentials or in a protected staging/production deploy job. Those jobs run it
-immediately before deploy. Never expose Forge credentials to a pull-request job.
+Run official Forge lint separately only on a local machine with existing Forge
+credentials or in a protected staging/production deploy job, through the
+environment-explicit `pnpm forge:lint:tldraw:staging` / `pnpm forge:lint:tldraw:prod`.
+Bare `pnpm forge:lint` is local-only: without `-e` the CLI falls back to its default
+development environment setting, which no CI runner has, and it then tries to prompt.
+Those jobs run lint immediately before deploy. Never expose Forge credentials to a
+pull-request job.
 
 `pnpm test:e2e:list` only checks offline collection. It does not install or launch a
 browser, authenticate to Confluence, or prove product behavior.

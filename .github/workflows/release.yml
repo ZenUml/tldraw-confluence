@@ -302,7 +302,7 @@ jobs:
       - name: Deploy existing app to Forge production
         run: |
           pnpm forge:deploy:disable-analytics
-          pnpm forge:lint
+          pnpm forge:lint:tldraw:prod
           pnpm forge:deploy:tldraw:prod
         env:
           FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
