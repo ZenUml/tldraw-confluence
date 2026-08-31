@@ -119,7 +119,14 @@ describe('WP1 GitHub workflow contracts', () => {
     );
     expect(forgeNode.uses).toBe('actions/setup-node@v5');
     expect(forgeNode.with['node-version']).toBe('20.x');
-    expect(deploy.steps.indexOf(forgeNode)).toBe(deploy.steps.indexOf(forgeDeploy) - 1);
+    // What matters is that every Forge CLI invocation runs on Node 20, not that the
+    // Node 20 step is adjacent to the deploy step. Assert the real invariant so a
+    // Forge CLI step may be added between them without weakening it.
+    const forgeCliSteps = deploy.steps.filter((step) => /(?:pnpm exec )?forge[\s:]/u.test(step.run ?? ''));
+    expect(forgeCliSteps).toContain(forgeDeploy);
+    for (const step of forgeCliSteps) {
+      expect(deploy.steps.indexOf(step)).toBeGreaterThan(deploy.steps.indexOf(forgeNode));
+    }
     expect(forgeDeploy.run.trim().split('\n')).toEqual([
       'pnpm forge:deploy:disable-analytics',
       // The environment must stay explicit. Bare `forge lint` falls back to the CLI's
@@ -134,6 +141,7 @@ describe('WP1 GitHub workflow contracts', () => {
       FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
     });
     const credentialGuard = stepByName(deploy, 'Verify Forge credentials are present');
+    const accessProbe = stepByName(deploy, 'Verify the identity can reach this app');
     expect(credentialGuard.env).toEqual({
       FORGE_EMAIL: '${{ vars.FORGE_EMAIL }}',
       FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
@@ -146,16 +154,24 @@ describe('WP1 GitHub workflow contracts', () => {
     );
     expect(credentialGuard.run).toContain('FORGE_API_TOKEN present:');
     expect(deploy.steps.indexOf(credentialGuard)).toBeLessThan(deploy.steps.indexOf(forgeNode));
-    expect(occurrenceCount(source, 'vars.FORGE_EMAIL')).toBe(2);
-    expect(occurrenceCount(source, 'secrets.FORGE_API_TOKEN')).toBe(2);
+    expect(occurrenceCount(source, 'vars.FORGE_EMAIL')).toBe(3);
+    expect(occurrenceCount(source, 'secrets.FORGE_API_TOKEN')).toBe(3);
     expect(source).not.toMatch(/secrets:\s*inherit/u);
     expect(
       deploy.steps.filter((step) =>
         JSON.stringify(step.env ?? {}).match(/FORGE_(?:EMAIL|API_TOKEN)/u),
       ),
-    ).toEqual([credentialGuard, forgeDeploy]);
+    ).toEqual([credentialGuard, accessProbe, forgeDeploy]);
+    expect(accessProbe.run).toContain('forge install list');
+    expect(accessProbe.run).toContain('contributor role');
+    expect(accessProbe.run).not.toMatch(/\$\{#FORGE_(?:EMAIL|API_TOKEN)/u);
+    expect(deploy.steps.indexOf(accessProbe)).toBeLessThan(deploy.steps.indexOf(forgeDeploy));
     expect(stepByName(deploy, 'Upload staging inputs').uses).toBe('actions/upload-artifact@v6');
-    expect(source).not.toMatch(/forge install|cloudflare|wrangler|sed.+manifest|APP_ID=/iu);
+    // Tightened, not relaxed: the read-only `forge install list` probe is allowed;
+    // every state-changing install form stays forbidden in a deploy job.
+    expect(source).not.toMatch(/forge install(?!\s+list)/iu);
+    expect(source).not.toMatch(/forge install\s+list[^\n]*--(?:upgrade|site|product)/iu);
+    expect(source).not.toMatch(/cloudflare|wrangler|sed.+manifest|APP_ID=/iu);
   });
 
   it('requires successful main staging and reviewed private evidence before a draft', () => {

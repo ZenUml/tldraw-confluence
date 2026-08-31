@@ -76,6 +76,30 @@ jobs:
         with:
           node-version: "20.x"
 
+      # A credential that authenticates is not the same as one that may deploy this
+      # app. Without a contributor role, `forge deploy` still runs analytics setup and
+      # lint first and then reports the denial indirectly, as a failure "while trying to
+      # determine if the app has any installations". Probe the same boundary here so the
+      # job names the cause in three seconds instead of thirty. `list` is the only
+      # read-only form of this command; the contract test forbids every other one.
+      - name: Verify the identity can reach this app
+        env:
+          FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
+          FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          if pnpm exec forge install list > "$RUNNER_TEMP/install-list.txt" 2>&1; then
+            echo "App access confirmed."
+            exit 0
+          fi
+          echo "The Forge identity authenticates but cannot reach this app." >&2
+          echo "Grant it a contributor role on the app named in manifest.yml:" >&2
+          echo "https://developer.atlassian.com/platform/forge/contributors/" >&2
+          echo "Background: docs/ops/pipeline-port-status.md, access boundary section." >&2
+          grep -iE "^Error:" "$RUNNER_TEMP/install-list.txt" >&2 || true
+          exit 1
+
       - name: Deploy existing app to Forge staging
         run: |
           pnpm forge:deploy:disable-analytics
