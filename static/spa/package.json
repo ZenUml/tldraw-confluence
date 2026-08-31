@@ -4,26 +4,26 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@forge/bridge": "^2.5.0",
-    "@tldraw/tldraw": "^1.26.2",
-    "lzutf8": "^0.6.3",
-    "mixpanel-browser": "^2.47.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-rnd": "^10.3.7",
-    "styled-components": "^5.3.6"
+    "@forge/bridge": "5.16.0",
+    "@tldraw/tldraw": "1.26.2",
+    "lzutf8": "0.6.3",
+    "mixpanel-browser": "2.47.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-rnd": "10.3.7",
+    "styled-components": "5.3.6"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.13",
-    "postcss": "^8.4.19",
-    "react-scripts": "^5.0.1",
-    "tailwindcss": "^3.2.4"
+    "@vitejs/plugin-react": "5.2.0",
+    "autoprefixer": "10.4.13",
+    "postcss": "8.4.19",
+    "tailwindcss": "3.2.4",
+    "vite": "7.2.2"
   },
   "scripts": {
-    "start": "WDS_SOCKET_PORT=8001 react-scripts start",
-    "start:local": "react-scripts start",
-    "build": "react-scripts build",
-    "eject": "react-scripts eject"
+    "start": "vite --host 0.0.0.0",
+    "start:local": "vite",
+    "build": "vite build"
   },
   "browserslist": {
     "production": [

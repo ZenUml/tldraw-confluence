@@ -1,0 +1,24 @@
+packages:
+  - .
+  - static/spa
+  - atlassian-migration
+  - tests/e2e-tests
+
+allowBuilds:
+  '@forge/cli': true
+  cloudflared: true
+  core-js: false
+  core-js-pure: false
+  esbuild: true
+  keytar: true
+  styled-components: false
+
+overrides:
+  styled-components@5.3.6>react-is: 16.13.1
+  debug@3.2.7>ms: 2.1.2
+  websocket-driver@0.7.4>safe-buffer: 5.1.2
+
+packageExtensions:
+  '@forge/bridge@2.5.0':
+    dependencies:
+      tslib: 2.4.1

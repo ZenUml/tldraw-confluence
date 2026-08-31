@@ -1,0 +1,449 @@
+{
+  "schemaVersion": 3,
+  "pnpmPeerDeclarationContract": {
+    "normalizationVersion": "json-array-v1",
+    "normalization": "json-array-v1: sort package keys and the union of each package's peerDependencies and peerDependenciesMeta names; encode each row as [packageKey, peerName, requestedRangeOrNull, optionalIsExactlyTrue]",
+    "count": 526,
+    "sha256": "dfc7124b69127730d16e3eb8ad05e2508f3525f7223940ddf3157871f026b980",
+    "reason": "The immutable npm baseline cannot represent pnpm-only peer declarations, so this reviewed canonical contract makes additions, removals, range changes, optionality changes, and orphan peer metadata fail closed."
+  },
+  "allowedDirectResolutionChanges": [
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "eslint-plugin-react-hooks",
+      "from": "4.6.0",
+      "to": "5.2.0",
+      "reason": "The old plugin excludes ESLint 9 from its peer range; 5.2.0 is the minimal peer-compatible development-only correction."
+    }
+  ],
+  "allowedNewDevelopmentDependencies": [
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "@eslint/js",
+      "version": "9.21.0",
+      "reason": "Pinned flat-config rules for the frozen ESLint version."
+    },
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "@forge/cli",
+      "version": "12.20.1",
+      "reason": "Pinned repository-local Forge validation and deployment CLI."
+    },
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "@forge/manifest",
+      "version": "12.7.0",
+      "reason": "Pinned local Forge manifest validator for secretless pull-request validation; authenticated forge lint remains a protected deployment gate."
+    },
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "globals",
+      "version": "15.14.0",
+      "reason": "Pinned ESLint environment definitions."
+    },
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "vitest",
+      "version": "2.1.9",
+      "reason": "Pinned repository-contract test runner."
+    },
+    {
+      "importer": ".",
+      "category": "dev",
+      "name": "yaml",
+      "version": "2.9.0",
+      "reason": "Pinned parser for manifest, workflow, and lockfile contract checks."
+    },
+    {
+      "importer": "tests/e2e-tests",
+      "category": "dev",
+      "name": "@playwright/test",
+      "version": "1.59.1",
+      "reason": "Pinned offline Playwright test-collection harness; WP1 adds no product UI coverage."
+    }
+  ],
+  "allowedTopologyResolutionChanges": [
+    {
+      "importer": "static/spa",
+      "category": "runtime",
+      "fromName": "@forge/bridge",
+      "fromVersion": "2.5.0",
+      "dependencyName": "tslib",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "2.4.1"
+      ],
+      "reason": "@forge/bridge imports tslib without declaring it; this package extension records the exact tslib 2.4.1 that npm's existing SPA hoist supplied, preventing pnpm from silently substituting the root toolchain's tslib 2.8.1.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": ".",
+      "category": "runtime",
+      "fromName": "webpack",
+      "fromVersion": "5.89.0",
+      "dependencyName": "webpack-cli",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "5.1.4"
+      ],
+      "reason": "pnpm records the already-present webpack-cli peer in webpack's peer-context snapshot; the npm graph already contains both exact package versions.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "runtime",
+      "fromName": "use-isomorphic-layout-effect",
+      "fromVersion": "1.1.2",
+      "dependencyName": "@types/react",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "18.0.25"
+      ],
+      "reason": "pnpm makes this optional type-only peer edge explicit; @types/react 18.0.25 already exists in the npm runtime graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "runtime",
+      "fromName": "@babel/parser",
+      "fromVersion": "7.20.3",
+      "dependencyName": "@babel/types",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "7.20.2"
+      ],
+      "reason": "pnpm preserves current registry dependency metadata omitted by the npm lock entry; @babel/types 7.20.2 already exists in the frozen runtime graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "runtime",
+      "fromName": "debug",
+      "fromVersion": "4.3.4",
+      "dependencyName": "supports-color",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "5.5.0"
+      ],
+      "reason": "pnpm makes debug's optional peer edge explicit; supports-color 5.5.0 already exists in the frozen runtime graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "@babel/parser",
+      "fromVersion": "7.20.3",
+      "dependencyName": "@babel/types",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "7.20.2"
+      ],
+      "reason": "pnpm preserves current registry dependency metadata omitted by the npm lock entry; @babel/types 7.20.2 already exists in the frozen build graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "debug",
+      "fromVersion": "4.3.4",
+      "dependencyName": "supports-color",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "5.5.0"
+      ],
+      "reason": "pnpm makes debug's optional peer edge explicit; supports-color 5.5.0 already exists in the frozen build graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "babel-preset-react-app",
+      "fromVersion": "10.0.1",
+      "dependencyName": "@babel/plugin-proposal-private-property-in-object",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "7.18.6"
+      ],
+      "reason": "pnpm records dependency metadata omitted by the npm lock entry; the exact Babel plugin version already exists in the frozen CRA graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "eslint-config-react-app",
+      "fromVersion": "7.0.1",
+      "dependencyName": "typescript",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "4.9.3"
+      ],
+      "reason": "pnpm materializes an existing CRA peer edge to the already-frozen TypeScript version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "react-dev-utils",
+      "fromVersion": "12.0.1",
+      "dependencyName": "webpack",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "5.75.0"
+      ],
+      "reason": "pnpm materializes an existing CRA peer edge to the already-frozen webpack version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "react-dev-utils",
+      "fromVersion": "12.0.1",
+      "dependencyName": "typescript",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "4.9.3"
+      ],
+      "reason": "pnpm materializes an existing CRA peer edge to the already-frozen TypeScript version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "@typescript-eslint/eslint-plugin",
+      "fromVersion": "5.44.0",
+      "dependencyName": "typescript",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "4.9.3"
+      ],
+      "reason": "pnpm materializes a build-only peer edge to the already-frozen TypeScript version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "@typescript-eslint/parser",
+      "fromVersion": "5.44.0",
+      "dependencyName": "typescript",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "4.9.3"
+      ],
+      "reason": "pnpm materializes a build-only peer edge to the already-frozen TypeScript version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "eslint-plugin-import",
+      "fromVersion": "2.26.0",
+      "dependencyName": "@typescript-eslint/parser",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "5.44.0"
+      ],
+      "reason": "pnpm materializes a build-only optional peer edge to the parser already present in the frozen CRA graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "eslint-plugin-jest",
+      "fromVersion": "25.7.0",
+      "dependencyName": "jest",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "27.5.1"
+      ],
+      "reason": "pnpm materializes a build-only optional peer edge to Jest already present in the frozen CRA graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "@typescript-eslint/type-utils",
+      "fromVersion": "5.44.0",
+      "dependencyName": "typescript",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "4.9.3"
+      ],
+      "reason": "pnpm materializes a build-only peer edge to the already-frozen TypeScript version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "@typescript-eslint/typescript-estree",
+      "fromVersion": "5.44.0",
+      "dependencyName": "typescript",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "4.9.3"
+      ],
+      "reason": "pnpm materializes a build-only peer edge to the already-frozen TypeScript version.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "eslint-module-utils",
+      "fromVersion": "2.7.4",
+      "dependencyName": "@typescript-eslint/parser",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "5.44.0"
+      ],
+      "reason": "pnpm materializes build-only optional peer metadata already represented by exact packages in the frozen CRA graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "eslint-module-utils",
+      "fromVersion": "2.7.4",
+      "dependencyName": "eslint",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "8.28.0"
+      ],
+      "reason": "pnpm materializes build-only peer metadata already represented by exact packages in the frozen CRA graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "eslint-module-utils",
+      "fromVersion": "2.7.4",
+      "dependencyName": "eslint-import-resolver-node",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "0.3.6"
+      ],
+      "reason": "pnpm materializes build-only optional peer metadata already represented by exact packages in the frozen CRA graph.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "optionalDependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "jest-worker",
+      "fromVersion": "27.5.1",
+      "dependencyName": "@types/node",
+      "baselineVersions": [
+        "18.11.9"
+      ],
+      "pnpmVersions": [
+        "22.13.9"
+      ],
+      "reason": "User-approved Option A on 2026-08-31: accept this exact SPA-build-only type dependency convergence to retain one pnpm lock; product and runtime dependency drift remains forbidden.",
+      "baselineKinds": [
+        "dependency"
+      ],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "randombytes",
+      "fromVersion": "2.1.0",
+      "dependencyName": "safe-buffer",
+      "baselineVersions": [
+        "5.1.2"
+      ],
+      "pnpmVersions": [
+        "5.2.1"
+      ],
+      "reason": "User-approved Option A on 2026-08-31: accept this exact SPA-build-only transitive convergence to retain one pnpm lock; product and runtime dependency drift remains forbidden.",
+      "baselineKinds": [
+        "dependency"
+      ],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    },
+    {
+      "importer": "static/spa",
+      "category": "build",
+      "fromName": "@types/node",
+      "fromVersion": "22.13.9",
+      "dependencyName": "undici-types",
+      "baselineVersions": [],
+      "pnpmVersions": [
+        "6.20.0"
+      ],
+      "reason": "User-approved Option A on 2026-08-31: allow the exact SPA-build-only dependency introduced by the approved @types/node convergence; product and runtime dependency drift remains forbidden.",
+      "baselineKinds": [],
+      "pnpmKinds": [
+        "dependency"
+      ]
+    }
+  ]
+}

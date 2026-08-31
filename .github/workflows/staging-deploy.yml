@@ -1,0 +1,74 @@
+name: Staging Deploy
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Forge Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: forge-staging-tldraw
+      cancel-in-progress: false
+    environment:
+      name: staging-tldraw
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v5
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.22.3
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate exact commit
+        run: pnpm validate
+
+      - name: Verify current default-branch tip
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin \
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+          test "$(git rev-parse HEAD)" = \
+            "$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")"
+
+      # Keep the repository build on Node 22.22.3. Only the Forge CLI switches
+      # to Node 20, matching conf-app's workaround for intermittent node-fetch
+      # "Premature close" failures while Forge fetches platform schemas.
+      - name: Use Node 20 for Forge CLI (node-fetch "Premature close" workaround)
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20.x"
+
+      - name: Deploy existing app to Forge staging
+        run: |
+          pnpm forge:deploy:disable-analytics
+          pnpm forge:lint
+          pnpm forge:deploy:tldraw:staging
+        env:
+          FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
+          FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+
+      - name: Upload staging inputs
+        uses: actions/upload-artifact@v6
+        with:
+          name: whiteboard-staging-${{ github.sha }}
+          path: |
+            manifest.yml
+            static/spa/build
+          if-no-files-found: error
+          retention-days: 14
