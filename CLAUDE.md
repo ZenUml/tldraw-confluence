@@ -140,6 +140,8 @@ browser, authenticate to Confluence, or prove product behavior.
 - Use a feature branch and pull request for every change.
 - Run `pnpm validate` before submission.
 - The authoritative PR check is `Build and Unit Test`.
+- Every branch push and pull request runs that check; push/PR events for the same
+  branch share one concurrency key. Only a successful `main` push can call staging.
 - The PR check is secretless and receives no Forge credentials. Protected staging
   and production jobs own authenticated official Forge lint immediately before
   deploy.
@@ -148,6 +150,10 @@ browser, authenticate to Confluence, or prove product behavior.
 - Never infer a tenant from old scripts or documentation.
 - Production promotion is disabled during WP1 and remains a separate authorized
   action after branding, fixture, PVT, and approval gates close.
+- Keep lifecycle skills aligned with `conf-app`:
+  `validate-branch` → `submit-branch` → `ready-pr` → `babysit-pr` → `land-pr` →
+  `release-app` → `pvt` → release-delta `spot-check`. Remove product-matrix
+  assumptions, but preserve every authorization and verification boundary.
 - Always label a PR reference with its purpose, never only a bare number.
 
 Project skills live under `.claude/skills/`. Treat a skill as available only after its

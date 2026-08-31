@@ -16,26 +16,43 @@ Status vocabulary:
 |---|---|---:|---|
 | Node/pnpm workspace and one lock | Adapt | LOCAL | Clean frozen install passes; the resolution guard accepts exactly 31 reviewed entries, including the user's three Option A build-only convergence entries |
 | Root validation commands | Adapt | LOCAL | Secretless/offline `pnpm validate` passes end to end; authenticated official Forge lint remains a separate protected-deploy gate |
-| Repository contract tests | Adapt | LOCAL | Vitest: 27/27 operational, workflow, and manifest-command contracts pass |
+| Repository contract tests | Adapt | LOCAL | Vitest: 32/32 covering dependency resolution, workflow/release semantics, adapted skills, and manifest validation |
 | Playwright harness | Adapt | LOCAL | Normal and `CI=1` collection each find exactly one non-product sentinel in one file |
 | Project guidance | Adapt | LOCAL | Symlink, stale-text, privacy, all checked local-link, and whitespace checks pass; an unreferenced legacy PNG with an embedded non-placeholder tenant hostname was removed |
-| PR CI | Adapt | LOCAL | YAML parses and five workflow contract tests pass; workflow is not registered remotely yet |
-| Forge staging | Adapt | STRUCTURAL ONLY | Exact-SHA/protected-environment definition reviewed; authenticated official Forge lint is chained immediately before deploy; no deploy or UI claim executed |
+| PR CI | Adapt | LOCAL | Every branch push and PR runs `Build and Unit Test`; branch-key concurrency deduplicates push/PR runs; staging remains main-only |
+| Forge staging | Adapt | STRUCTURAL ONLY | Exact-SHA/protected-environment definition reviewed; build stays on Node 22.22.3, the Forge CLI uses the shared Node 20 workaround, and authenticated lint precedes raw deploy; no deploy or UI claim executed |
 | GitHub protection configuration | Adapt | BLOCKED | Read-only remote audit found no environments, repository-level Actions variables/secrets, branch protection, or ruleset; configure the documented controls before merge |
-| Draft release | Adapt | STRUCTURAL ONLY | Main-run, evidence-hash, stable-release, and reviewer gates reviewed; no draft created |
-| Production release | Adapt | STRUCTURAL ONLY | Disabled until branding, fixture, PVT, and approval gates close |
+| Draft release | Adapt | STRUCTURAL ONLY | Main-run, evidence-hash, freshness, required delta-notes, stable-release, and reviewer gates reviewed; no draft created |
+| Production release | Adapt | STRUCTURAL ONLY | Disabled until branding, fixture, PVT, and two independent publication/environment approval gates close; normal releases enforce predecessor ancestry |
+| Production lineage authority | Adapt | BLOCKED | Normal workflow races are guarded, but remote releases/tags are mutable and immutable releases are disabled; production enablement needs a tamper-resistant last-successful-production SHA record plus deletion/mutation governance |
 | `validate-branch` | Adapt | LOCAL | Skill contract passes and its first locally scoped, non-deploying path, `pnpm validate`, succeeds; UI is correctly `SKIPPED — no runtime change` |
 | `forge-tunnel` | Adapt | BLOCKED | Skill schema and command contract pass; Forge identity/install preflight needs local credentials not present in this checkout |
 | `spot-check` | Adapt | STRUCTURAL ONLY | Skill schema and evidence rules pass; no approved fixture or runtime change was exercised |
 | PR lifecycle skill set | Adapt | LOCAL | Schemas and read-only GitHub discovery/help pass; all state-changing halves remain structural |
 | Dependency updates | Adapt | LOCAL | Weekly dev-tool-only Dependabot contract present; product/runtime packages are excluded in WP1 |
 | License metadata alignment | Defer | DEFERRED | `LICENSE.md` is Apache-2.0 while existing package metadata says MIT/ISC; owner/legal confirmation required before changing either |
-| `release-app` | Defer | DEFERRED | Needs verified staging fixture, version metadata, production environment, and PVT |
-| Whiteboard smoke/PVT | Defer | DEFERRED | WP2 owns real create/edit/save/reload coverage |
+| `release-app` | Adapt | STRUCTURAL ONLY | Single-app fresh exact-SHA draft → required delta notes → explicit publish → independent production review → deploy → PVT → delta spot-check contract exists; its fail-closed WP1 gate prevents publication |
+| Whiteboard smoke/PVT | Adapt | BLOCKED | Single-app PVT contract exists, but execution needs an approved production fixture and visible build identity from WP2 |
 | `check-version` | Defer | DEFERRED | Needs a visible release tag/SHA |
 | `health-check` | Defer | DEFERRED | Needs deployed lifecycle events and a baseline |
 | Cloudflare, D1, paywall, product-variant pipeline | Skip | SKIPPED | No equivalent infrastructure in this app |
 | Source settings/hooks | Skip | SKIPPED | Machine/account-specific and not portable |
+
+## `conf-app` lifecycle parity
+
+The target lifecycle deliberately keeps the same shape as the reference project:
+
+`validate → submit Draft → ready → babysit exact SHA → land → main staging → SHA-pinned draft → release-app → production deploy → PVT → delta-driven spot-check`
+
+The single Whiteboard app removes only product matrices, canary/soak ordering,
+Cloudflare publication, manifest variant rewrites, and tenant-specific recipes. WP1
+also retains three explicit temporary safety differences: staging is main-only, draft
+creation waits for reviewed UI evidence while product E2E is absent, and production is
+disabled until immutable evidence, an approved fixture, visible build identity, and
+PVT exist. A tamper-resistant last-successful-production SHA record must also replace
+the mutable release list as the deployment-history authority before production is
+enabled. These differences must shrink as their prerequisites land; they are not a
+second release model.
 
 ## Package-resolution evidence
 
@@ -55,20 +72,21 @@ The isolated npm and clean pnpm builds each contain 14 files. Their final filena
 
 Forge CLI 12.20.1 requires authentication before `forge lint`; no authless CLI flag exists. The local checkout has no Forge credentials, so the official command is correctly recorded as locally `BLOCKED`, not failed or bypassed. Pull-request validation receives no Forge credentials.
 
-The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `validate(false, manifestPath)` through `pnpm validate:manifest`. The command fails only on diagnostics whose level is `error`; the unchanged manifest currently reports zero errors and six existing warnings. This structural validator is narrower than full Forge CLI lint. Protected staging and production steps inject Forge credentials only into one step and run `pnpm forge:lint && pnpm forge:deploy:tldraw:<environment>` there. Those deployment paths remain `STRUCTURAL ONLY` until exercised live.
+The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `validate(false, manifestPath)` through `pnpm validate:manifest`. The command fails only on diagnostics whose level is `error`; the unchanged manifest currently reports zero errors and six existing warnings. This structural validator is narrower than full Forge CLI lint. Protected staging and production steps inject Forge credentials only into one step. That step disables Forge analytics once, runs raw `pnpm forge:lint`, then the raw environment deploy script. Build/validation stays on Node 22.22.3; only the Forge CLI segment switches to Node 20 to match the reference pipeline's node-fetch workaround. Those deployment paths remain `STRUCTURAL ONLY` until exercised live.
 
 ## Local validation evidence
 
 - Node `22.22.3` and pnpm `10.34.5`;
 - frozen install: PASS, including after all three npm locks were removed;
 - ESLint: PASS with zero errors and 13 pre-existing source warnings;
-- Vitest: PASS, 27 tests;
+- Vitest: PASS, 32 tests across four files;
 - Whiteboard build and relative resource-output check: PASS;
 - pinned offline Forge manifest validation: PASS with zero errors and six existing warnings;
 - Playwright collection: PASS locally and under `CI=1`, one sentinel in one file;
-- all eight repository skills pass the bundled `skill-creator` structural validator;
+- all ten repository skills pass the bundled `skill-creator` structural validator;
 - all four workflow files plus `manifest.yml` parse as YAML, and all 16 checked local Markdown links resolve;
 - read-only GitHub repository/PR/help discovery: PASS; no workflow is registered on `main` before this branch lands;
+- remote immutable releases: disabled; authoritative production-SHA ledger: absent and required before production enablement;
 - Forge tunnel help: PASS; identity/environment/install discovery is BLOCKED because the three required local inputs are missing, and port 3000 is free;
 - guarded runtime diff against `a3393e1`: empty;
 - `git diff --check`: PASS;

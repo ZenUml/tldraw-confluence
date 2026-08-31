@@ -95,6 +95,7 @@ describe('WP1 operational contracts', () => {
       'build:whiteboard',
       'validate:resource-output',
       'validate:manifest',
+      'forge:deploy:disable-analytics',
       'forge:lint',
       'test:e2e:list',
       'validate',
@@ -110,9 +111,10 @@ describe('WP1 operational contracts', () => {
       'pnpm check:resolutions && pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list',
     );
     expect(rootPackage.scripts.validate).not.toContain('forge:lint');
-    expect(rootPackage.scripts['forge:lint']).toBe(
-      'pnpm forge:analytics:disable && forge lint',
+    expect(rootPackage.scripts['forge:deploy:disable-analytics']).toBe(
+      'forge settings set usage-analytics false',
     );
+    expect(rootPackage.scripts['forge:lint']).toBe('forge lint');
   });
 
   it('keeps the Whiteboard frontend on its frozen product and build stack', () => {

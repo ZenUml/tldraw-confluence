@@ -2,7 +2,7 @@ name: Release
 
 on:
   release:
-    types: [published]
+    types: [released]
 
 permissions:
   actions: read
@@ -15,10 +15,14 @@ jobs:
     timeout-minutes: 15
     outputs:
       release_sha: ${{ steps.provenance.outputs.release_sha }}
+      fresh_until_epoch: ${{ steps.provenance.outputs.fresh_until_epoch }}
     env:
       RELEASE_ENABLED: ${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}
       BRAND_APPROVED: ${{ vars.TLDRAW_BRAND_APPROVED }}
       RELEASE_TAG: ${{ github.event.release.tag_name }}
+      EVENT_RELEASE_SHA: ${{ github.sha }}
+      CURRENT_RELEASE_ID: ${{ github.event.release.id }}
+      CURRENT_PUBLISHED_AT: ${{ github.event.release.published_at }}
       RELEASE_IS_DRAFT: ${{ github.event.release.draft }}
       RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -47,7 +51,7 @@ jobs:
       - name: Checkout release tag for verification
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Verify staged release provenance
@@ -58,26 +62,79 @@ jobs:
         run: |
           set -euo pipefail
 
-          RELEASE_SHA=$(git rev-parse "${RELEASE_TAG}^{commit}")
+          git fetch --no-tags origin \
+            "+refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          RELEASE_SHA=$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")
+          if [[ "$RELEASE_SHA" != "$EVENT_RELEASE_SHA" ]]; then
+            echo "Release tag moved after the release event was created." >&2
+            exit 1
+          fi
           git fetch --no-tags origin \
             "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
-          if ! git merge-base --is-ancestor "$RELEASE_SHA" "origin/${DEFAULT_BRANCH}"; then
+          if ! git merge-base --is-ancestor \
+            "$RELEASE_SHA" "refs/remotes/origin/${DEFAULT_BRANCH}"; then
             echo "Release tag is not reachable from the default branch." >&2
             exit 1
           fi
 
+          if [[ "$RELEASE_TAG" =~ ^v([0-9]{4})\.([0-9]{2})\.([0-9]{2})([0-9]{2})([0-9]{2})-tldraw$ ]]; then
+            TAG_TIME="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]} ${BASH_REMATCH[4]}:${BASH_REMATCH[5]}:00Z"
+          else
+            echo "Could not derive the Whiteboard draft timestamp from the release tag." >&2
+            exit 1
+          fi
+          TAG_EPOCH=$(date -u -d "$TAG_TIME" +%s)
+          PUBLISHED_EPOCH=$(date -u -d "$CURRENT_PUBLISHED_AT" +%s)
+          NOW_EPOCH=$(date -u +%s)
+          if (( PUBLISHED_EPOCH < TAG_EPOCH || PUBLISHED_EPOCH - TAG_EPOCH > 86400 )); then
+            echo "Whiteboard draft tag is older than 24 hours at publication." >&2
+            exit 1
+          fi
+          if (( NOW_EPOCH < PUBLISHED_EPOCH || NOW_EPOCH - PUBLISHED_EPOCH > 86400 )); then
+            echo "Whiteboard publication is older than 24 hours." >&2
+            exit 1
+          fi
+
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" --slurp \
+            > "$RUNNER_TEMP/releases.json"
+          LINEAGE=$(jq -cer \
+            --arg current_id "$CURRENT_RELEASE_ID" \
+            --arg current_published_at "$CURRENT_PUBLISHED_AT" \
+            -f scripts/select-whiteboard-release-lineage.jq \
+            "$RUNNER_TEMP/releases.json") || {
+              echo "Whiteboard release lineage is unsafe or ambiguous." >&2
+              exit 1
+            }
+          test "$(jq -r '.currentTag' <<< "$LINEAGE")" = "$RELEASE_TAG"
+          PREVIOUS_RELEASE_TAG=$(jq -r '.previousTag' <<< "$LINEAGE")
+
+          if [[ -n "$PREVIOUS_RELEASE_TAG" ]]; then
+            if [[ ! "$PREVIOUS_RELEASE_TAG" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{6}-tldraw$ ]]; then
+              echo "Previous Whiteboard release has an unsupported tag." >&2
+              exit 1
+            fi
+            git fetch --no-tags origin \
+              "+refs/tags/${PREVIOUS_RELEASE_TAG}:refs/tags/${PREVIOUS_RELEASE_TAG}"
+            PREVIOUS_RELEASE_SHA=$(git rev-parse "refs/tags/${PREVIOUS_RELEASE_TAG}^{commit}")
+            if ! git merge-base --is-ancestor "$PREVIOUS_RELEASE_SHA" "$RELEASE_SHA"; then
+              echo "Previous published Whiteboard release is not an ancestor of this release." >&2
+              exit 1
+            fi
+          fi
+
           PROVENANCE=$(jq -er '
             (.release.body // "")
-            | capture("^Staging run ID: (?<run>[0-9]+)\\nUI evidence SHA-256: (?<hash>[0-9a-f]{64})\\n?$")
+            | capture("^Staging run ID: (?<run>[0-9]+)\\nUI evidence SHA-256: (?<hash>[0-9a-f]{64})(?<notes>\\n\\n## Changes\\n[\\s\\S]+)\\n?$")
+            | select(.notes | sub("^\\n\\n## Changes\\n"; "") | test("[^[:space:]]"))
           ' "$GITHUB_EVENT_PATH") || {
-            echo "Release notes do not contain the exact staged-run and evidence contract." >&2
+            echo "Release notes require the staged-run/evidence header and a non-empty Changes section." >&2
             exit 1
           }
           MAIN_RUN_ID=$(jq -r '.run' <<< "$PROVENANCE")
 
           gh run view "$MAIN_RUN_ID" \
             --repo "$GITHUB_REPOSITORY" \
-            --json conclusion,event,headBranch,headSha,jobs,workflowName \
+            --json conclusion,createdAt,event,headBranch,headSha,jobs,updatedAt,workflowName \
             > "$RUNNER_TEMP/main-run.json"
 
           jq -e \
@@ -91,7 +148,29 @@ jobs:
              and any(.jobs[]; (.name | endswith("Deploy to Forge Staging")) and .conclusion == "success")' \
             "$RUNNER_TEMP/main-run.json" > /dev/null
 
-          echo "release_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          MAIN_RUN_CREATED_AT=$(jq -er '.createdAt' "$RUNNER_TEMP/main-run.json")
+          MAIN_RUN_UPDATED_AT=$(jq -er '.updatedAt' "$RUNNER_TEMP/main-run.json")
+          MAIN_RUN_CREATED_EPOCH=$(date -u -d "$MAIN_RUN_CREATED_AT" +%s)
+          MAIN_RUN_UPDATED_EPOCH=$(date -u -d "$MAIN_RUN_UPDATED_AT" +%s)
+          if (( MAIN_RUN_UPDATED_EPOCH < MAIN_RUN_CREATED_EPOCH \
+                || MAIN_RUN_UPDATED_EPOCH > TAG_EPOCH + 60 \
+                || PUBLISHED_EPOCH < MAIN_RUN_UPDATED_EPOCH \
+                || PUBLISHED_EPOCH - MAIN_RUN_UPDATED_EPOCH > 86400 )); then
+            echo "Referenced staging run is not a fresh predecessor of this release." >&2
+            exit 1
+          fi
+
+          FRESH_UNTIL_EPOCH=$((TAG_EPOCH + 86400))
+          if (( MAIN_RUN_UPDATED_EPOCH + 86400 < FRESH_UNTIL_EPOCH )); then
+            FRESH_UNTIL_EPOCH=$((MAIN_RUN_UPDATED_EPOCH + 86400))
+          fi
+          if (( PUBLISHED_EPOCH + 86400 < FRESH_UNTIL_EPOCH )); then
+            FRESH_UNTIL_EPOCH=$((PUBLISHED_EPOCH + 86400))
+          fi
+          {
+            echo "release_sha=$RELEASE_SHA"
+            echo "fresh_until_epoch=$FRESH_UNTIL_EPOCH"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v5
@@ -140,6 +219,14 @@ jobs:
       - name: Rebuild and validate release commit
         run: pnpm validate
 
+      # Keep build and validation on Node 22.22.3. Only the Forge CLI switches
+      # to Node 20, matching conf-app's workaround for intermittent node-fetch
+      # "Premature close" failures while Forge fetches platform schemas.
+      - name: Use Node 20 for Forge CLI (node-fetch "Premature close" workaround)
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20.x"
+
       - name: Recheck production authorization after approval
         env:
           GH_TOKEN: ${{ github.token }}
@@ -147,7 +234,9 @@ jobs:
           BRAND_APPROVED: ${{ vars.TLDRAW_BRAND_APPROVED }}
           RELEASE_ID: ${{ github.event.release.id }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PUBLISHED_AT: ${{ github.event.release.published_at }}
           RELEASE_SHA: ${{ needs.preflight.outputs.release_sha }}
+          FRESH_UNTIL_EPOCH: ${{ needs.preflight.outputs.fresh_until_epoch }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         shell: bash
         run: |
@@ -158,8 +247,40 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
             > "$RUNNER_TEMP/release-after-approval.json"
           jq -e --arg tag "$RELEASE_TAG" \
-            '.draft == false and .prerelease == false and .tag_name == $tag' \
+            --arg published_at "$RELEASE_PUBLISHED_AT" \
+            '.draft == false
+             and .prerelease == false
+             and .tag_name == $tag
+             and .published_at == $published_at' \
             "$RUNNER_TEMP/release-after-approval.json" > /dev/null
+
+          PUBLISHED_EPOCH=$(date -u -d "$RELEASE_PUBLISHED_AT" +%s)
+          NOW_EPOCH=$(date -u +%s)
+          if [[ ! "$FRESH_UNTIL_EPOCH" =~ ^[0-9]+$ ]]; then
+            echo "Release freshness boundary is invalid." >&2
+            exit 1
+          fi
+          if (( NOW_EPOCH < PUBLISHED_EPOCH || NOW_EPOCH - PUBLISHED_EPOCH > 86400 )); then
+            echo "Whiteboard publication expired while awaiting production approval." >&2
+            exit 1
+          fi
+          if (( NOW_EPOCH > FRESH_UNTIL_EPOCH )); then
+            echo "Whiteboard staging or draft freshness expired during production approval." >&2
+            exit 1
+          fi
+
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" --slurp \
+            > "$RUNNER_TEMP/releases-after-approval.json"
+          LINEAGE=$(jq -cer \
+            --arg current_id "$RELEASE_ID" \
+            --arg current_published_at "$RELEASE_PUBLISHED_AT" \
+            -f scripts/select-whiteboard-release-lineage.jq \
+            "$RUNNER_TEMP/releases-after-approval.json") || {
+              echo "Whiteboard release lineage changed or became ambiguous during approval." >&2
+              exit 1
+            }
+          test "$(jq -r '.currentTag' <<< "$LINEAGE")" = "$RELEASE_TAG"
+          PREVIOUS_RELEASE_TAG=$(jq -r '.previousTag' <<< "$LINEAGE")
 
           git fetch --no-tags origin \
             "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}" \
@@ -168,8 +289,21 @@ jobs:
           git merge-base --is-ancestor \
             "$RELEASE_SHA" "refs/remotes/origin/${DEFAULT_BRANCH}"
 
+          if [[ -n "$PREVIOUS_RELEASE_TAG" ]]; then
+            git fetch --no-tags origin \
+              "+refs/tags/${PREVIOUS_RELEASE_TAG}:refs/tags/${PREVIOUS_RELEASE_TAG}"
+            PREVIOUS_RELEASE_SHA=$(git rev-parse "refs/tags/${PREVIOUS_RELEASE_TAG}^{commit}")
+            if ! git merge-base --is-ancestor "$PREVIOUS_RELEASE_SHA" "$RELEASE_SHA"; then
+              echo "Previous published Whiteboard release is not an ancestor after approval." >&2
+              exit 1
+            fi
+          fi
+
       - name: Deploy existing app to Forge production
-        run: pnpm forge:lint && pnpm forge:deploy:tldraw:production
+        run: |
+          pnpm forge:deploy:disable-analytics
+          pnpm forge:lint
+          pnpm forge:deploy:tldraw:prod
         env:
           FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
           FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}

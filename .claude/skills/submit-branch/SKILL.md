@@ -22,10 +22,17 @@ Require nameWithOwner to be ZenUml/tldraw-confluence and the base branch to be m
 Then verify:
 
 - The current branch is not main.
-- The working tree contains no mixed or unexplained changes.
-- All intended changes are committed. This skill does not guess what to stage or commit.
 - The branch has passed validate-branch, whose authoritative command is pnpm validate.
 - Any required runtime UI check has evidence; WP1 process-only work may say SKIPPED — no runtime change.
+
+Classify the worktree before submission:
+
+- **Clean worktree** — nothing remains to commit; continue to push.
+- **Scoped changes** — every changed file belongs to the requested branch work. Review
+  the diff, stage only those files, commit with a descriptive message, rerun the
+  applicable validation, then continue.
+- **Mixed or unrelated changes** — stop and ask which files belong to this submission.
+  Never guess, stage everything, or move another session's work.
 
 If another session owns changes in the checkout, do not stash, restore, clean, switch, or overwrite them. Stop or use an isolated worktree that already contains only the intended branch.
 

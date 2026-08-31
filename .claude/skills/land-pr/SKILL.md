@@ -39,9 +39,15 @@ This state-changing half remains structural until exercised on a real ZenUml/tld
 
 Proceed only after all preconditions and merge authorization are present.
 
-1. Select an enabled merge strategy. Honor a user-specified enabled strategy; otherwise use the repository's supported default without rewriting history.
-2. Merge the exact PR. Add branch deletion only when the stacked-PR check is empty.
-3. Re-read the PR until state is MERGED and capture mergeCommit.oid. Do not report LANDED before this succeeds.
+1. Select an enabled merge strategy. Honor a user-specified enabled strategy. Otherwise
+   inspect `mergeCommitAllowed`, `squashMergeAllowed`, and `rebaseMergeAllowed`: use
+   the sole enabled strategy when only one is available; when several are available,
+   prefer merge commit, then squash, then rebase. If none is enabled, stop.
+2. Map that choice to `--merge`, `--squash`, or `--rebase` and merge the exact PR.
+   Add branch deletion only when the stacked-PR check is empty.
+3. Re-read the PR until state is MERGED and capture `mergeCommit.oid`. Timeout after 5 minutes.
+   Do not report LANDED before this succeeds; if the timeout expires, report the last
+   observed state without retrying the merge command.
 
 Do not use auto-merge to bypass a currently failing or pending precondition.
 

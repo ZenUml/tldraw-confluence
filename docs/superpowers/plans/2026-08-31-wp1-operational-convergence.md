@@ -441,7 +441,11 @@ Steps:
 2. Group patch/minor development-tool updates only; never auto-merge.
 3. Ignore all update types during WP1 for `@tldraw/tldraw`, React/ReactDOM, CRA, the Forge runtime packages (`@forge/api`, `@forge/resolver`, `@forge/bridge`, `@forge/ui`), and the current SPA product/build dependencies. Their child work packages remove the relevant ignore deliberately. They must never enter the routine group.
 4. Record each gap-list item as ported/adapted/deferred/skipped, its dependency, local/live validation state, and evidence.
-5. Mark `release-app`, smoke-test, PVT, check-version, and health-check deferred with their exact unlock conditions.
+5. Port fail-closed single-app `release-app` and PVT contracts now, but mark their live
+   operation structural/blocked until immutable evidence, an approved production
+   fixture, visible build identity, and a tamper-resistant last-successful-production
+   SHA record exist. Keep `check-version` and `health-check` deferred with their exact
+   unlock conditions; do not copy a source-specific smoke-test recipe.
 6. Record that Cloudflare, D1, paywall, product-variant, and source-specific skills were deliberately skipped.
 
 Validation:

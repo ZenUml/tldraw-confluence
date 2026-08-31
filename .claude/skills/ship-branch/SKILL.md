@@ -34,7 +34,12 @@ The state-changing portions remain structural until exercised on a real ZenUml/t
 
 Invoke validate-branch. It runs pnpm validate.
 
-- Stop on local failure.
+- On a reproducible repository-local failure, make the smallest safe correction,
+  then invoke validate-branch again from the beginning. The shipping request authorizes these minimal fixes.
+- Repeat for at most three fix-and-revalidate attempts. Do not weaken a check, hide a
+  failure, broaden the task, or modify credentials/external configuration.
+- Stop when the attempt budget is exhausted or the required correction needs a
+  product decision, destructive action, external coordination, or materially broader work.
 - For WP1 process-only work, UI is SKIPPED — no runtime change.
 - For runtime/user-visible work, stop unless spot-check produced evidence for every required UI assertion.
 
@@ -50,8 +55,9 @@ Submit does not merge.
 
 Invoke babysit-pr for the labelled PR. Require Build and Unit Test success for the exact head SHA.
 
-- If the request authorizes fixes, babysit-pr may use its bounded three-attempt loop.
-- Otherwise monitoring remains read-only.
+- The shipping request authorizes babysit-pr's bounded three-attempt loop for minimal,
+  evidence-backed repository-local CI fixes. Every push must pass pnpm validate.
+- Re-diagnose each new failure and never push while the prior run is active.
 - Stop on exhausted retries, merge conflicts, missing configuration, or a changed/unverified head.
 
 ### 4. Land

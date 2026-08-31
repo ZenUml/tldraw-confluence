@@ -35,7 +35,8 @@ manifest structure checks from `pnpm validate:manifest`, which uses the pinned
 internal `@forge/manifest` package. That validator is narrower than the official
 Forge CLI lint. Do not add Forge credentials to pull-request jobs: official
 `pnpm forge:lint` runs separately on a credentialed developer machine or in the
-protected staging/production job immediately before deploy.
+protected staging/production job immediately before deploy. On a new CLI environment,
+run `pnpm forge:deploy:disable-analytics` once before the lint command.
 
 If a change affects visible behavior, provide real Forge UI evidence or a relevant
 resolver/network intercept. Unit tests and collection output alone do not satisfy a

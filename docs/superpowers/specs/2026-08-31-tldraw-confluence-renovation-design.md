@@ -226,10 +226,15 @@ Deliverables:
 - main-branch staging deployment;
 - SHA-pinned draft release and release-event production deployment;
 - project guidance and an accurate README;
-- adapted skills: `validate-branch`, the submit/ready/babysit/land/ship set, `forge-tunnel`, and `spot-check`;
+- adapted skills: `validate-branch`, the submit/ready/babysit/land/ship set,
+  `forge-tunnel`, `release-app`, PVT, and `spot-check`;
 - a recorded table of ported, validated, deferred, and skipped items.
 
-`release-app`, Whiteboard smoke/PVT, `check-version`, and `health-check` land only after their required staging fixture, build metadata, and analytics signals exist.
+The `release-app` and Whiteboard PVT control contracts land fail-closed in WP1 so the
+lifecycle and skill boundaries already match `conf-app`; their live execution remains
+blocked until the staging/production fixture, immutable evidence, build identity,
+and an authoritative last-successful-production SHA record exist. `check-version`
+and `health-check` land only after their build metadata and analytics signals exist.
 
 ### WP2 — Data safety and behavioral baseline
 

@@ -22,11 +22,22 @@ Require ZenUml/tldraw-confluence, an open PR targeting main, and record headRefO
 
 The PR workflow is Build, Test and Stage. The required PR job is exactly Build and Unit Test.
 
-List runs:
+List both event types for the exact branch and inspect only the recorded head SHA:
 
-    gh run list --repo ZenUml/tldraw-confluence --workflow "Build, Test and Stage" --event pull_request --branch HEAD_BRANCH --limit 20 --json databaseId,headSha,status,conclusion,url,createdAt
+    gh run list --repo ZenUml/tldraw-confluence --workflow "Build, Test and Stage" \
+      --branch HEAD_BRANCH --limit 40 \
+      --json databaseId,event,headSha,status,conclusion,url,createdAt
 
-Select the newest run whose headSha exactly equals headRefOid. Do not reuse a green run from an earlier commit.
+From exact-SHA runs, select the newest exact-SHA `pull_request` run by `createdAt`,
+using `databaseId` as the tie-breaker, and treat only that run as authoritative. This
+matters when `ready_for_review` or `reopened` creates another PR run without changing
+the SHA. Wait if the newest run is active. Never reuse an older PR run from the same SHA.
+Because push and PR events share one branch concurrency key, an exact-SHA
+cancelled push run is duplicate noise. If the newest PR run itself is cancelled,
+report `BLOCKED`; do not accept a successful push run or an older PR run as its
+substitute. Rerun the PR workflow only when explicitly authorized and only after
+confirming that no matching run is active. Do not reuse a green run from an earlier
+commit.
 
 For both Draft and Ready PRs:
 
@@ -67,8 +78,12 @@ This state-changing half remains structural until exercised on a real ZenUml/tld
 - Run pnpm validate before every push.
 - Commit only scoped files and use a regular push; never force-push.
 - Count each fix-and-push or manual rerun as one attempt. Stop after at most three attempts.
+- After every failed attempt, read the new run's logs and re-diagnose from the new logs;
+  do not assume the failure category stayed the same.
 - Re-read the PR head SHA after every push and monitor only its matching run.
 - A manual rerun is appropriate only for evidence-backed transient infrastructure failure and only when no run is active.
+- Do not push or rerun while a prior run is active. Wait for it to finish and re-read
+  its authoritative status before spending another attempt.
 - Never auto-resolve merge conflicts, modify secrets/environments, weaken validation, merge the PR, dispatch staging, create/publish a release, or deploy production.
 
 ## Report

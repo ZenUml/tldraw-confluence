@@ -55,6 +55,22 @@ For a negative assertion, define the observation window and the signal that must
 
 If behavior differs, capture the failure state and stop destructive follow-up actions. Do not alter assertions after seeing the result merely to make the run pass.
 
+## Post-release handoff
+
+When `release-app` invokes this skill, require the exact release tag/SHA, the Step 2
+release delta classification, and a PASS result from the PVT baseline. Stop if PVT is
+FAIL or BLOCKED.
+
+For every delta commit, preserve its `behavioral`, `instrumentation`, or
+`infra/test/docs` classification. Add at least one observable assertion for each
+reachable behavioral change. Instrumentation needs an event/request assertion or an
+explicit skip reason. Pure infra/test/docs work may be skipped with a concrete reason.
+Do not select coverage only by keyword or silently omit a commit that is unreachable
+in the released build.
+
+Write the delta assertions before browser use, deduplicate them against the PVT
+baseline, then execute the smallest release-specific plan with the same evidence rule.
+
 ## 4. Report
 
 Report each assertion with:

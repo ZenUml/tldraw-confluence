@@ -21,7 +21,11 @@ An installation command also requires an explicitly supplied site such as `examp
 
 Local preflight may inspect authentication, environments, installations, and tunnel help. Deployment, installation, upgrade, tunnel startup, and process termination are state-changing steps and require an explicit operation.
 
-`pnpm validate` is designed to run without Forge credentials. Its offline manifest check uses `@forge/manifest` and fails on error-level structural findings. This is not the complete Forge CLI `forge lint`: authenticated staging and production deployment steps run `pnpm forge:lint` immediately before `forge deploy`.
+`pnpm validate` is designed to run without Forge credentials. Its offline manifest
+check uses `@forge/manifest` and fails on error-level structural findings. This is not
+the complete Forge CLI `forge lint`: authenticated staging and production deployment
+steps switch only the Forge CLI segment to Node 20, disable analytics once, run raw
+`pnpm forge:lint`, then run the raw environment deploy script.
 
 ## GitHub environments
 
@@ -49,15 +53,29 @@ Repository-level variables gate production before the protected deployment job s
 - `TLDRAW_BRAND_APPROVED=true`
 - `TLDRAW_PRODUCTION_RELEASE_ENABLED=true`
 
-`TLDRAW_PRODUCTION_RELEASE_ENABLED` must remain unset during WP1. WP2 may enable it only after an approved production fixture and automated PVT path exist.
+`TLDRAW_PRODUCTION_RELEASE_ENABLED` must remain unset during WP1. WP2 may enable it
+only after an approved production fixture, automated PVT, immutable UI provenance,
+and an authoritative last-successful-production SHA record exist.
 
 Before production can be enabled, replace the WP1 release-body evidence pointer with
 an immutable, workflow-verifiable evidence artifact or attestation. The current
 manual hash/reviewer gate is sufficient only while production is disabled.
 
+The normal workflow's release-lineage query protects ordinary stale reruns and
+out-of-order approvals, but the GitHub release list and tags are not the production
+system of record. Before enabling production, persist each successful production SHA
+in a tamper-resistant deployment record or attestation, require that SHA to be an
+ancestor of the next candidate, and govern release/tag deletion and mutation.
+[GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)
+are an additional repository control, not a replacement for that deployment record.
+The read-only WP1 audit found immutable releases disabled.
+
 ## Deploy versus install
 
-Normal staging and production delivery runs authenticated `forge lint` followed by `forge deploy`. Deployment is its only state-changing Forge operation; it never installs or upgrades the app on a tenant.
+Normal staging and production delivery runs authenticated `forge lint` followed by
+`forge deploy`. Deployment is its only state-changing Forge operation; it never
+installs or upgrades the app on a tenant. `release-app` preserves this boundary and
+cannot enable its own production gates.
 
 Installation is a separately named bootstrap operation for an approved test tenant. The caller must supply the site explicitly. No production tenant is inferred from the repository's legacy scripts, and no production validation tenant has been verified in WP1.
 

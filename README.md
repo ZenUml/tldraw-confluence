@@ -56,14 +56,16 @@ The stable repository interface is:
 | `pnpm validate:manifest` | Run deterministic structural manifest validation through the pinned internal `@forge/manifest` package. |
 | `pnpm test:e2e:list` | Collect one non-product Playwright harness sentinel. |
 | `pnpm validate` | Run the complete secretless/offline WP1 and PR validation contract. |
+| `pnpm forge:deploy:disable-analytics` | Disable the Forge CLI analytics prompt once before authenticated CLI work. |
 | `pnpm forge:lint` | Run the official authenticated Forge CLI lint separately. |
 
 `pnpm validate:manifest` is intentionally narrower than official Forge CLI lint; it
 does not prove every platform rule. `pnpm validate` includes it and does not invoke
 `pnpm forge:lint`, contact Forge, or require Forge credentials. Official Forge lint
 runs only on a developer machine that already has credentials or immediately before
-deploy in the protected staging and production jobs. Pull-request jobs receive no
-Forge secrets.
+deploy in the protected staging and production jobs. Run
+`pnpm forge:deploy:disable-analytics` first when preparing a new CLI environment.
+Pull-request jobs receive no Forge secrets.
 
 WP1 has **zero product Playwright assertions**. A successful
 `pnpm test:e2e:list` is collection evidence only—it is not an E2E or UI pass.
