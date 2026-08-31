@@ -8,6 +8,14 @@
 
 **Confirmed programme decisions:** renovate the standalone repository before merging; upgrade the modern tldraw SDK before merging; develop independent streams in parallel while promoting releases serially.
 
+**WP1 package-manager decision (approved by the user on 2026-08-31):** use one
+shared pnpm lockfile and accept exactly three `static/spa` build-graph convergence
+differences: `jest-worker > @types/node` moves from 18.11.9 to 22.13.9,
+`randombytes > safe-buffer` moves from 5.1.2 to 5.2.1, and
+`@types/node@22.13.9` adds `undici-types@6.20.0`. This is Option A. It is not a
+general dependency-upgrade authorization; every other product or runtime resolution
+drift remains prohibited in WP1.
+
 ## 1. Objective
 
 Renovate `tldraw-confluence` in its existing repository until it is operationally and technically close enough to `conf-app` to merge as a fifth product variant. The standalone app must be upgraded and proven under its existing Forge identity before the codebase merge.
@@ -55,7 +63,7 @@ These observations define the renovation baseline. Unmerged branches are not tre
 |---|---:|---|
 | Project guidance (`AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`) | Absent | Adapt a Whiteboard-specific subset |
 | Deterministic Node/pnpm toolchain | Absent | Port the conventions and use one workspace lockfile |
-| Root validation contract | Absent | Add stable lint, unit, build, Forge lint, E2E-list, and validate commands |
+| Root validation contract | Absent | Add secretless/offline lint, unit, build, pinned manifest validation, E2E-list, and validate commands; keep official Forge lint in authenticated deployment preflight |
 | PR CI | Absent | Add a single authoritative build/test check |
 | Automatic staging deployment | Absent | Add after PR validation is reproducible |
 | Draft and production release flow | Absent | Adapt for one Forge app and tag-pinned builds |
@@ -149,7 +157,9 @@ The legacy slot preserves the pre-upgrade source document, but it does not prese
 A short serial contract freeze precedes all work. It fixes:
 
 - `pnpm@10.34.5`, Node `>=22`, Node `22.22.3` for local install/build/test and authoritative CI artifacts, and the existing Forge `nodejs22.x` runtime;
-- root commands `pnpm lint`, `pnpm test:unit`, `pnpm build:whiteboard`, `pnpm forge:lint`, `pnpm test:e2e:list`, and `pnpm validate`;
+- secretless/offline root commands `pnpm lint`, `pnpm test:unit`,
+  `pnpm build:whiteboard`, `pnpm validate:manifest`, `pnpm test:e2e:list`, and
+  `pnpm validate`, plus the separately authenticated `pnpm forge:lint` command;
 - deploy commands `pnpm forge:deploy:tldraw:staging` and `pnpm forge:deploy:tldraw:production`;
 - frontend build output;
 - CI check name;
@@ -192,13 +202,26 @@ Vite and the SDK major are never introduced in the same release.
 
 WP1 changes process and tooling without changing runtime behavior, storage schema, Forge identity, or SDK version.
 
-The package-manager conversion preserves currently resolved runtime dependency versions. Any minimal tooling-only peer-dependency correction is isolated and documented; general dependency renovation is not bundled into WP1.
+The package-manager conversion preserves currently resolved product and runtime
+dependency versions except for the user's 2026-08-31 Option A decision. In one
+shared lockfile, only these `static/spa` build-graph differences are approved:
+
+- `jest-worker > @types/node`: 18.11.9 to 22.13.9;
+- `randombytes > safe-buffer`: 5.1.2 to 5.2.1;
+- `@types/node@22.13.9` adds `undici-types@6.20.0`.
+
+Any minimal tooling-only peer-dependency correction is isolated and documented.
+The three approved convergence entries do not authorize another product/runtime
+version or edge drift, and general dependency renovation is not bundled into WP1.
 
 Deliverables:
 
 - Node/pnpm/workspace contract and one lockfile;
 - local Forge CLI dependency and non-interactive root commands;
-- lint, unit-test, build, Forge-lint, E2E-list, and validate scripts;
+- lint, unit-test, build, pinned local manifest validation, E2E-list, and a
+  secretless/offline `validate` script;
+- a separate official Forge-lint command that runs only with credentials locally or
+  immediately before deploy in the protected staging/production jobs;
 - PR CI with concurrency cancellation for superseded branch runs;
 - main-branch staging deployment;
 - SHA-pinned draft release and release-event production deployment;
@@ -210,7 +233,7 @@ Deliverables:
 
 ### WP2 — Data safety and behavioral baseline
 
-WP2 adds the typed codec, storage state machine, ordered saves, privacy-safe logging, synthetic/de-identified golden fixtures, unit tests, and the first Forge E2E journey while retaining CRA and tldraw v1.
+WP2 adds the typed codec, storage state machine, ordered saves, privacy-safe logging, purpose-built synthetic golden fixtures, unit tests, and the first Forge E2E journey while retaining CRA and tldraw v1. Customer-derived fixtures remain in approved private storage and require a separate privacy review even when they appear de-identified.
 
 Fixtures cover raw v1, compressed v1, missing, KVS read error, corrupt Base64/JSON, unsupported arrays/objects, invalid `localId`, and non-empty-assets documents. Semantic fingerprints compare page, shape, binding, text, geometry, camera, viewport, and asset behavior rather than raw JSON strings.
 
@@ -236,14 +259,28 @@ A later custom-content migration is explicitly outside WP6.
 
 ## 9. CI, release, and skills design
 
-The authoritative PR check performs a frozen install followed by lint, unit tests, build, Forge lint, and E2E collection. Browser E2E runs against a controlled staging fixture rather than every untrusted pull request. Any runtime PR that makes a UI claim must obtain trusted staging E2E evidence or a tunnel spot-check before merge; test collection alone is not UI evidence.
+The authoritative PR check performs a frozen install followed by the
+secretless/offline `pnpm validate` contract: resolution guard, lint, unit tests,
+build, resource-output validation, pinned local manifest validation, and E2E
+collection. The local manifest validator uses the repository-pinned internal
+`@forge/manifest` package; it is a deterministic structural validator, not the
+complete official Forge CLI lint or a substitute for platform validation. Pull
+requests receive no Forge credentials.
+
+Official `pnpm forge:lint` requires Forge authentication. It may be run locally when
+the credentials are already available, and is mandatory immediately before Forge
+deploy in protected staging and production jobs. Browser E2E runs against a
+controlled staging fixture rather than every untrusted pull request. Any runtime PR
+that makes a UI claim must obtain trusted staging E2E evidence or a tunnel spot-check
+before merge; test collection alone is not UI evidence.
 
 Main-branch delivery is:
 
-1. rebuild the exact commit;
-2. deploy the existing app to staging;
-3. run a UI-evidenced Whiteboard smoke test;
-4. create a SHA-pinned draft release only after success.
+1. rebuild and run secretless/offline validation on the exact commit;
+2. run authenticated official Forge lint in the protected staging job;
+3. deploy the existing app to staging;
+4. run a UI-evidenced Whiteboard smoke test;
+5. create a SHA-pinned draft release only after success.
 
 Publishing that release checks out the tag, rebuilds it, deploys production, and runs Whiteboard PVT. Production deployment uses a protected GitHub environment. It does not install or upgrade tenant installations as a normal step.
 
@@ -273,7 +310,7 @@ Every event includes the applicable common properties: `feature_area=whiteboard`
 | `whiteboard_render_failed` | the editor cannot render a validated snapshot | SDK version, stable error code |
 | `whiteboard_resize_succeeded` / `whiteboard_resize_failed` | viewport persistence resolves | size bucket, outcome |
 
-No event or log contains board text, shape properties, compressed data, `localId`, tenant identifiers, complete Forge context, or raw exception text. Public repository fixtures are synthetic or de-identified.
+No event or log contains board text, shape properties, compressed data, `localId`, tenant identifiers, complete Forge context, or raw exception text. Public repository fixtures are purpose-built synthetic data only.
 
 ## 11. Licensing and branding gates
 
@@ -298,9 +335,13 @@ References:
 ### WP1 exit
 
 - clean frozen install succeeds;
-- all root validation commands work locally;
+- all secretless/offline root validation commands work locally;
+- the pinned internal `@forge/manifest` validator passes while remaining explicitly
+  classified as narrower than official Forge CLI lint;
+- protected staging and production deploy jobs run authenticated official Forge lint
+  immediately before deploy, without exposing Forge credentials to pull requests;
 - workflows parse and reference existing commands;
-- each ported skill passes its first non-destructive dry run;
+- each ported skill passes its first locally scoped, non-deploying preflight;
 - Playwright collects the intended tests;
 - no runtime, identity, scope, or KVS-format change is present.
 
