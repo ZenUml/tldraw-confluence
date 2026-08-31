@@ -12,7 +12,6 @@
     "node": "22.22.3"
   },
   "scripts": {
-    "check:resolutions": "node scripts/check-package-manager-resolutions.mjs",
     "lint": "eslint .",
     "test:unit": "vitest run",
     "build:whiteboard": "pnpm --dir static/spa build",
@@ -22,7 +21,7 @@
     "forge:analytics:disable": "pnpm forge:deploy:disable-analytics",
     "forge:lint": "forge lint",
     "test:e2e:list": "pnpm --filter @zenuml/tldraw-confluence-e2e test:list",
-    "validate": "pnpm check:resolutions && pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
+    "validate": "pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
     "start:whiteboard": "pnpm --dir static/spa start:local",
     "forge:deploy:tldraw:development": "forge deploy -e development --non-interactive --verbose",
     "forge:deploy:tldraw:staging": "forge deploy -e staging --non-interactive --verbose",

@@ -24,7 +24,7 @@ export default [
     },
   },
   {
-    files: ['static/spa/src/**/*.js'],
+    files: ['static/spa/src/**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -40,7 +40,7 @@ export default [
     },
   },
   {
-    files: ['static/spa/*.config.js'],
+    files: ['static/spa/{postcss,tailwind}.config.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'commonjs',
@@ -48,7 +48,15 @@ export default [
     },
   },
   {
-    files: ['**/*.js', '**/*.mjs'],
+    files: ['static/spa/vite.config.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['**/*.{js,jsx,mjs}'],
     rules: {
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },

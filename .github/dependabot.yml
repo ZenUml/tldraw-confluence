@@ -28,7 +28,7 @@ updates:
           - react
           - react-dom
           - react-rnd
-          - react-scripts
+          - "@vitejs/plugin-react"
           - styled-components
           - tailwindcss
     ignore:
@@ -44,6 +44,7 @@ updates:
       - dependency-name: react
       - dependency-name: react-dom
       - dependency-name: react-rnd
-      - dependency-name: react-scripts
+      - dependency-name: "@vitejs/plugin-react"
+      - dependency-name: vite
       - dependency-name: styled-components
       - dependency-name: tailwindcss

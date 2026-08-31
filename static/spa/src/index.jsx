@@ -4,9 +4,9 @@ import './index.css';
 
 function importBuildTarget() {
   if (localStorage.getItem('no-bridge')) {
-    return import('./MockApp');
+    return import('./MockApp.js');
   } else {
-    return import('./App');
+    return import('./App.js');
   }
 }
 importBuildTarget().then(({default: App}) => {

@@ -2,7 +2,7 @@ import React from "react";
 import {defaultDocument} from "./defaultDocument";
 import {Tldraw} from "@tldraw/tldraw";
 import {Rnd} from "react-rnd";
-import Debug from "./Debug/Debug";
+import Debug from "./Debug/Debug.jsx";
 import {compress, decompress} from './compress';
 import mixpanel from 'mixpanel-browser';
 
