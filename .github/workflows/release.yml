@@ -219,6 +219,31 @@ jobs:
       - name: Rebuild and validate release commit
         run: pnpm validate
 
+      # This job sits in the workflow that the release event triggers, so its
+      # `environment: production-tldraw` supplies both the variable and the secret
+      # directly. The staging path reaches the same credential differently, because a
+      # called workflow receives no environment secrets and its caller must inherit
+      # them. Do not "align" the two mechanisms without re-reading that difference.
+      #
+      # Forge reports a missing credential as an opaque "Not logged in". Fail here
+      # instead. This job's log is public, so report presence only: never a value, a
+      # length, or a prefix.
+      - name: Verify Forge credentials are present
+        env:
+          FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
+          FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${FORGE_EMAIL:-}" ]; then EMAIL_PRESENT=true; else EMAIL_PRESENT=false; fi
+          if [ -n "${FORGE_API_TOKEN:-}" ]; then TOKEN_PRESENT=true; else TOKEN_PRESENT=false; fi
+          echo "FORGE_EMAIL present: $EMAIL_PRESENT"
+          echo "FORGE_API_TOKEN present: $TOKEN_PRESENT"
+          if [ "$EMAIL_PRESENT" != true ] || [ "$TOKEN_PRESENT" != true ]; then
+            echo "Forge credentials did not resolve for environment production-tldraw." >&2
+            exit 1
+          fi
+
       # Keep build and validation on Node 22.22.3. Only the Forge CLI switches
       # to Node 20, matching conf-app's workaround for intermittent node-fetch
       # "Premature close" failures while Forge fetches platform schemas.
