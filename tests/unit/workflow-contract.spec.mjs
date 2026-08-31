@@ -141,7 +141,6 @@ describe('WP1 GitHub workflow contracts', () => {
       FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
     });
     const credentialGuard = stepByName(deploy, 'Verify Forge credentials are present');
-    const accessProbe = stepByName(deploy, 'Verify the identity can reach this app');
     expect(credentialGuard.env).toEqual({
       FORGE_EMAIL: '${{ vars.FORGE_EMAIL }}',
       FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
@@ -154,23 +153,19 @@ describe('WP1 GitHub workflow contracts', () => {
     );
     expect(credentialGuard.run).toContain('FORGE_API_TOKEN present:');
     expect(deploy.steps.indexOf(credentialGuard)).toBeLessThan(deploy.steps.indexOf(forgeNode));
-    expect(occurrenceCount(source, 'vars.FORGE_EMAIL')).toBe(3);
-    expect(occurrenceCount(source, 'secrets.FORGE_API_TOKEN')).toBe(3);
+    expect(occurrenceCount(source, 'vars.FORGE_EMAIL')).toBe(2);
+    expect(occurrenceCount(source, 'secrets.FORGE_API_TOKEN')).toBe(2);
     expect(source).not.toMatch(/secrets:\s*inherit/u);
     expect(
       deploy.steps.filter((step) =>
         JSON.stringify(step.env ?? {}).match(/FORGE_(?:EMAIL|API_TOKEN)/u),
       ),
-    ).toEqual([credentialGuard, accessProbe, forgeDeploy]);
-    expect(accessProbe.run).toContain('forge install list');
-    expect(accessProbe.run).toContain('contributor role');
-    expect(accessProbe.run).not.toMatch(/\$\{#FORGE_(?:EMAIL|API_TOKEN)/u);
-    expect(deploy.steps.indexOf(accessProbe)).toBeLessThan(deploy.steps.indexOf(forgeDeploy));
+    ).toEqual([credentialGuard, forgeDeploy]);
     expect(stepByName(deploy, 'Upload staging inputs').uses).toBe('actions/upload-artifact@v6');
-    // Tightened, not relaxed: the read-only `forge install list` probe is allowed;
-    // every state-changing install form stays forbidden in a deploy job.
-    expect(source).not.toMatch(/forge install(?!\s+list)/iu);
-    expect(source).not.toMatch(/forge install\s+list[^\n]*--(?:upgrade|site|product)/iu);
+    // Back to the strict blanket form. The read-only `forge install list` exception
+    // existed for an access probe that could not work on a fresh runner — the command
+    // takes no `-e`, so it always hits the default-environment prompt first.
+    expect(source).not.toMatch(/forge install/iu);
     expect(source).not.toMatch(/cloudflare|wrangler|sed.+manifest|APP_ID=/iu);
   });
 
