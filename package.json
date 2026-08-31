@@ -4,19 +4,52 @@
   "main": "index.js",
   "license": "MIT",
   "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22"
+  },
+  "volta": {
+    "node": "22.22.3"
+  },
   "scripts": {
-    "deploy:staging": "forge deploy -e staging",
-    "install:staging": "forge install --upgrade -e staging -s zenuml-stg.atlassian.net",
-    "deploy:production": "forge deploy -e production",
-    "install:production": "forge install --upgrade -e production -s zenuml-stg.atlassian.net"
+    "check:resolutions": "node scripts/check-package-manager-resolutions.mjs",
+    "lint": "eslint .",
+    "test:unit": "vitest run",
+    "build:whiteboard": "pnpm --dir static/spa build",
+    "validate:resource-output": "node scripts/validate-resource-output.mjs",
+    "validate:manifest": "node scripts/validate-forge-manifest.mjs",
+    "forge:analytics:disable": "forge settings set usage-analytics false",
+    "forge:lint": "pnpm forge:analytics:disable && forge lint",
+    "test:e2e:list": "pnpm --filter @zenuml/tldraw-confluence-e2e test:list",
+    "validate": "pnpm check:resolutions && pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
+    "start:whiteboard": "pnpm --dir static/spa start:local",
+    "forge:deploy:tldraw:development": "pnpm forge:analytics:disable && forge deploy -e development --non-interactive --verbose",
+    "forge:deploy:tldraw:staging": "pnpm forge:analytics:disable && forge deploy -e staging --non-interactive --verbose",
+    "forge:deploy:tldraw:production": "pnpm forge:analytics:disable && forge deploy -e production --non-interactive --verbose",
+    "forge:install:tldraw:development": "pnpm forge:analytics:disable && forge install --site \"$ATLASSIAN_SITE\" --product confluence -e development --non-interactive --verbose",
+    "forge:install:tldraw:staging": "pnpm forge:analytics:disable && forge install --site \"$ATLASSIAN_SITE\" --product confluence -e staging --non-interactive --verbose",
+    "forge:install:tldraw:production": "pnpm forge:analytics:disable && forge install --site \"$ATLASSIAN_SITE\" --product confluence -e production --non-interactive --verbose",
+    "forge:upgrade:tldraw:development": "pnpm forge:analytics:disable && forge install --upgrade --site \"$ATLASSIAN_SITE\" --product confluence -e development --non-interactive --verbose",
+    "forge:upgrade:tldraw:staging": "pnpm forge:analytics:disable && forge install --upgrade --site \"$ATLASSIAN_SITE\" --product confluence -e staging --non-interactive --verbose",
+    "forge:upgrade:tldraw:production": "pnpm forge:analytics:disable && forge install --upgrade --site \"$ATLASSIAN_SITE\" --product confluence -e production --non-interactive --verbose",
+    "forge:bootstrap:tldraw:development": "pnpm forge:install:tldraw:development",
+    "forge:bootstrap:tldraw:staging": "pnpm forge:install:tldraw:staging",
+    "forge:bootstrap:tldraw:production": "pnpm forge:install:tldraw:production",
+    "forge:tunnel:tldraw": "pnpm forge:analytics:disable && forge tunnel -e development"
   },
   "devDependencies": {
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^4.2.0"
+    "@eslint/js": "9.21.0",
+    "@forge/cli": "12.20.1",
+    "@forge/manifest": "12.7.0",
+    "eslint": "9.21.0",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "globals": "15.14.0",
+    "vitest": "2.1.9",
+    "yaml": "2.9.0"
   },
   "dependencies": {
-    "@forge/api": "^2.8.1",
-    "@forge/resolver": "^1.4.6",
-    "@forge/ui": "^1.5.0"
+    "@forge/api": "2.22.1",
+    "@forge/resolver": "1.4.6",
+    "@forge/ui": "1.5.0"
   }
 }

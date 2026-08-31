@@ -1,0 +1,8 @@
+# Local configuration and authenticated browser state
+.env
+auth-state*.json
+
+# Generated Playwright output
+blob-report/
+playwright-report/
+test-results/
