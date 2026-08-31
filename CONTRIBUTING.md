@@ -1,16 +1,77 @@
 # Contributing
 
-Thank you for considering a contribution to this repo. Pull requests, and comments are welcome.
-To give us feedback on this example or the documentation use the links at [give feedback](https://developer.atlassian.com/platform/forge/give-feedback/).
+Contributions are welcome through pull requests to
+[`ZenUml/tldraw-confluence`](https://github.com/ZenUml/tldraw-confluence).
 
-For pull requests, please:
+## Before changing code
 
-* Follow the existing style
-* Separate unrelated changes into multiple pull requests
+1. Read [CLAUDE.md](CLAUDE.md) and the relevant file under
+   [`docs/policies/`](docs/policies/).
+2. Start a focused feature branch from an up-to-date `main`; never commit product
+   work directly to `main`.
+3. Check `git status`. If the checkout contains work you did not create, preserve it
+   and use a separate worktree instead of stashing, restoring, or cleaning it.
+4. Keep one change of concern per pull request.
 
-Atlassian requires contributors to sign a Contributor License Agreement, known as a CLA. This serves as a record stating that the contributor is entitled to contribute the code/documentation/translation to the project and is willing to have it used in distributions and derivative works (or is willing to transfer ownership).
+New user-visible behavior must define its analytics events—name, trigger, and typed
+properties—before runtime implementation begins. WP1 is operational scaffolding and
+does not add product events.
 
-Prior to accepting your contributions we ask that you please follow the appropriate link below to digitally sign the CLA. The Corporate CLA is for those who are contributing as a member of an organization and the individual CLA is for those contributing as an individual.
+## Local validation
 
-* [CLA for corporate contributors](https://na2.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=e1c17c66-ca4d-4aab-a953-2c231af4a20b)
-* [CLA for individuals](https://na2.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=3f94fbdc-2fbe-46ac-b14c-5d152700ae5d)
+Install and validate from the repository root:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm validate
+```
+
+Run narrower commands while developing, but run the complete contract before
+submitting a pull request. WP1's Playwright command only collects a non-product
+sentinel. Do not report it as an E2E or UI pass.
+
+`pnpm validate` is secretless/offline after installation. It includes deterministic
+manifest structure checks from `pnpm validate:manifest`, which uses the pinned
+internal `@forge/manifest` package. That validator is narrower than the official
+Forge CLI lint. Do not add Forge credentials to pull-request jobs: official
+`pnpm forge:lint` runs separately on a credentialed developer machine or in the
+protected staging/production job immediately before deploy.
+
+If a change affects visible behavior, provide real Forge UI evidence or a relevant
+resolver/network intercept. Unit tests and collection output alone do not satisfy a
+UI assertion. If no approved fixture is available, mark the UI check `SKIPPED` or
+`BLOCKED` with the reason.
+
+## Pull request notes
+
+Every pull request should state:
+
+- the user or operational outcome;
+- validation commands and their actual results;
+- whether UI evidence is `PASS`, `FAIL`, `SKIPPED`, or `BLOCKED`;
+- any impact on Forge identity, permissions, KVS keys, or stored values;
+- whether a staging or production release is required.
+
+Process-only WP1 changes must report UI validation as
+`SKIPPED — no runtime change`, never as `PASS`.
+
+The WP1 shared-lock decision allows exactly three `static/spa` build-graph
+convergences: `jest-worker > @types/node` 18.11.9 to 22.13.9,
+`randombytes > safe-buffer` 5.1.2 to 5.2.1, and the new
+`@types/node@22.13.9 > undici-types@6.20.0` edge. Any other product/runtime
+resolution change requires a later scoped work package rather than an expanded WP1
+allowlist.
+
+## Privacy and test data
+
+Follow [the client-privacy policy](docs/policies/client-privacy.md). Public commits
+must use synthetic data and placeholder tenant details. Never commit credentials,
+auth state, customer board content, complete Forge context, or screenshots that
+identify a customer.
+
+## Runtime safety
+
+The Forge app ID, `whiteboard` macro key, permissions, legacy KVS key derivation,
+and stored values are compatibility contracts. Read
+[the persistence-safety policy](docs/policies/persistence-safety.md) before touching
+load, save, document conversion, or assets.
