@@ -76,6 +76,30 @@ That identity is not a contributor to the original Whiteboard Forge app. Environ
 
 The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `validate(false, manifestPath)` through `pnpm validate:manifest`. The command fails only on diagnostics whose level is `error`; the unchanged manifest currently reports zero errors and six existing warnings. This structural validator is narrower than full Forge CLI lint. Protected staging and production steps inject Forge credentials only into one step. That step disables Forge analytics once, runs the environment-explicit `pnpm forge:lint:tldraw:staging` or `pnpm forge:lint:tldraw:prod`, then the raw environment deploy script. Build/validation stays on Node 22.22.3; only the Forge CLI segment switches to Node 20 to match the reference pipeline's node-fetch workaround. Those deployment paths remain `STRUCTURAL ONLY` until exercised live.
 
+## Where each deploy job's Forge credential comes from
+
+The staging and production jobs reach the same credential by different mechanisms. Measured on main,
+not inferred:
+
+- **Staging.** `build-test-deploy.yml` invokes `staging-deploy.yml` with `uses:`, so the deploy job
+  runs inside a **called** workflow. A called workflow's `secrets` context holds only what the caller
+  passes. Declaring `environment: staging-tldraw` on that job brings the environment's variables and
+  its protection rules, but **not** its secrets. Run 33395382680 reported
+  `FORGE_EMAIL present: true` and `FORGE_API_TOKEN present: false` from that one job, while the
+  repository held no repository-scoped secret or variable at all — so the environment was applied and
+  its secret was still unavailable. The caller therefore passes `secrets: inherit`, and the token lives
+  at **repository** scope.
+- **Production.** `release.yml`'s deploy job is a normal job in the workflow the release event
+  triggers, so `environment: production-tldraw` supplies both the variable and the secret directly.
+
+Both jobs carry the same presence guard, which reports presence only — never a value, a length, or a
+prefix, because this repository is public and its job logs are public. Do not align the two mechanisms
+without re-reading this difference; the contract tests pin each one.
+
+The GitHub documentation on reusing workflows states that an environment secret is used when the
+called workflow's job declares `environment`. The measurement above contradicts that for this case,
+and the measurement is what the workflows are built on.
+
 ## Local validation evidence
 
 - Node `22.22.3` and pnpm `10.34.5`;

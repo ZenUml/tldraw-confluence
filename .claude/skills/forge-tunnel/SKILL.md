@@ -97,9 +97,31 @@ Report each preflight item and label every state-changing action:
 
     STRUCTURAL ONLY / UNVALIDATED — not executed by the preflight
 
-## Stateful tunnel flow — STRUCTURAL ONLY / UNVALIDATED
+### Preflight EXECUTED 2026-08-31 — one step fails for a recorded reason
 
-Use this section only when the user authorized a live development tunnel. The marker remains until this target-specific flow is exercised successfully.
+All six steps ran on this checkout. Result:
+
+1. Local inputs: all three names set.
+2. Command contract: all nine commands present.
+3. Local Forge analytics preference: already false.
+4. `forge whoami` succeeded. `forge environments list` returned one environment, `production`, last
+   deployed 2025-06-13 — there is no `development` environment on this app. `forge install list` was
+   **denied**: "The caller is requesting to get the installations of an app that they do not have
+   access to".
+5. Port 3000 free, no tunnel process.
+6. `pnpm validate` green; authenticated Forge lint reported 0 errors and 6 warnings;
+   `forge tunnel --help` printed normally.
+
+Step 4 is the boundary. See the access boundary section of `docs/ops/pipeline-port-status.md`.
+
+## Stateful tunnel flow — BLOCKED by app access, not merely unvalidated
+
+Use this section only when the user authorized a live development tunnel.
+
+`forge tunnel` targets the development environment. This app has none, and the available identity is
+not a contributor to the app, so it can neither read installations nor create that environment. The
+flow cannot be exercised by adding authorization inside this repository; an app owner must grant a
+contributor role first. Report `BLOCKED` with that reason rather than attempting the tunnel.
 
 1. Re-run the non-deploying preflight.
 2. Build the frontend:
