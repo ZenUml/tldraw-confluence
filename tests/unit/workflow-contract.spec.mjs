@@ -114,9 +114,12 @@ describe('WP1 GitHub workflow contracts', () => {
     const forgeDeploy = stepByName(deploy, 'Deploy existing app to Forge staging');
     expect(validate.run).toBe('pnpm validate');
     expect(validate.env).toBeUndefined();
-    expect(stepByName(deploy, 'Verify current default-branch tip').run).toContain(
-      'refs/remotes/origin/${DEFAULT_BRANCH}',
-    );
+    const tipCheck = stepByName(deploy, 'Verify current default-branch tip');
+    expect(tipCheck.run).toContain('refs/remotes/origin/${DEFAULT_BRANCH}');
+    // A superseded commit is the expected outcome of two merges in quick succession.
+    // The step must say so, or its red is read as a deployment fault.
+    expect(tipCheck.run).toContain('no longer the ${DEFAULT_BRANCH} tip');
+    expect(tipCheck.run).toContain('current tip:');
     expect(forgeNode.uses).toBe('actions/setup-node@v5');
     expect(forgeNode.with['node-version']).toBe('20.x');
     // What matters is that every Forge CLI invocation runs on Node 20, not that the
