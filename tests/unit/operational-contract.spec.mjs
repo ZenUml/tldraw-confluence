@@ -52,4 +52,11 @@ describe('operational contracts', () => {
     expect(spaPackage.devDependencies['@vitejs/plugin-react']).toBe('5.2.0');
     expect(spaPackage.devDependencies['react-scripts']).toBeUndefined();
   });
+
+  it('keeps the Forge entrypoint free of JSX that its packager cannot parse', () => {
+    const source = fs.readFileSync(path.join(repositoryRoot, 'src/index.js'), 'utf8');
+
+    expect(source).not.toMatch(/<\/?[A-Z][A-Za-z0-9.]*/u);
+    expect(source).toContain('ForgeUI.createElement');
+  });
 });

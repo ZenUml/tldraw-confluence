@@ -86,14 +86,19 @@ resolver.define('delete-all', async ({ context }) => {
 export const handler = resolver.getDefinitions();
 
 const Config = () => {
-
-  return (
-    <MacroConfig>
-      <TextField name="name" label="Diagram title" placeholder="Untitled Diagram" description="You need to publish this page to start drawing diagrams" isRequired="true"/>
-    </MacroConfig>
+  return ForgeUI.createElement(
+    MacroConfig,
+    null,
+    ForgeUI.createElement(TextField, {
+      name: 'name',
+      label: 'Diagram title',
+      placeholder: 'Untitled Diagram',
+      description: 'You need to publish this page to start drawing diagrams',
+      isRequired: 'true',
+    }),
   );
 }
 
 export const config = render(
-  <Config />
+  ForgeUI.createElement(Config),
 )
