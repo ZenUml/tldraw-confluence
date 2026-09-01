@@ -248,7 +248,9 @@ WP3 migrates CRA to Vite and establishes the portable React 18 workspace/resourc
 
 ### WP4 — Forge platform dependency convergence
 
-WP4 upgrades `@forge/api`, `@forge/resolver`, and `@forge/bridge` toward the versions proven by `conf-app`, and replaces legacy `@forge/ui` macro configuration with a supported Custom UI configuration resource using `view.submit({ config })`. The reference baseline observed on 2026-08-31 is `@forge/api` 6.x, `@forge/resolver` 1.6.x, and `@forge/bridge` 5.16.x; the WP4 child design records exact tested versions. It preserves the required title field, macro identity, scopes, key derivation, and stored values. This is a separate release from Vite and from the editor SDK.
+WP4 upgrades `@forge/api`, `@forge/resolver`, and `@forge/bridge` toward the versions proven by `conf-app`, and removes the legacy `@forge/ui` dependency. The reference baseline observed on 2026-08-31 is `@forge/api` 6.x, `@forge/resolver` 1.6.x, and `@forge/bridge` 5.16.x; the WP4 child design records exact tested versions. It preserves macro identity, scopes, key derivation, and stored Whiteboard values. This is a separate release from Vite and from the editor SDK.
+
+The 2026-09-01 Development inspection superseded the earlier title-field preservation decision. The legacy `Diagram title` configuration was not consumed by the Whiteboard runtime, and its deployed UI did not render a usable field. The configuration surface and manifest function are therefore removed instead of migrated. Existing macro configuration data is not Whiteboard-body data and must not be treated as a storage dependency; any later reintroduction of macro configuration requires a new approved product use case.
 
 ### WP5 — Modern tldraw SDK upgrade
 
@@ -371,7 +373,7 @@ References:
 
 ### WP4 exit
 
-- the current macro configuration behavior is reproduced through supported Custom UI APIs;
+- the unused legacy macro configuration surface and function are absent;
 - `@forge/api`, `@forge/resolver`, and `@forge/bridge` match the approved target versions;
 - `@forge/ui` is absent;
 - WP3's storage and UI suite passes unchanged;

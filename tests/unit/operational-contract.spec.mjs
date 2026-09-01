@@ -53,10 +53,14 @@ describe('operational contracts', () => {
     expect(spaPackage.devDependencies['react-scripts']).toBeUndefined();
   });
 
-  it('keeps the Forge entrypoint free of JSX that its packager cannot parse', () => {
+  it('does not expose the unused legacy macro title configuration', () => {
+    const manifest = YAML.parse(fs.readFileSync(path.join(repositoryRoot, 'manifest.yml'), 'utf8'));
+    const macro = manifest.modules.macro.find(({ key }) => key === 'whiteboard');
     const source = fs.readFileSync(path.join(repositoryRoot, 'src/index.js'), 'utf8');
 
+    expect(macro).not.toHaveProperty('config');
+    expect(manifest.modules.function.map(({ key }) => key)).toEqual(['resolver']);
     expect(source).not.toMatch(/<\/?[A-Z][A-Za-z0-9.]*/u);
-    expect(source).toContain('ForgeUI.createElement');
+    expect(source).not.toMatch(/MacroConfig|TextField|export const config|@forge\/ui/u);
   });
 });
