@@ -1,14 +1,14 @@
 # WP2 Data Safety and Behavioral Baseline — Child Design
 
-**Status:** Proposed for user review; no WP2 runtime implementation is authorized by this document.
+**Status:** Approved by the user on 2026-09-03. The user's direct-completion instruction authorizes implementation without another staged approval loop.
 
 **Parent:** [Tldraw for Confluence Renovation Design](./2026-08-31-tldraw-confluence-renovation-design.md)
 
-**Stacked base:** WP1 operational-convergence head `3c6a2ff99132de1fd76237f1f24227c88980a60c`
+**Implementation base:** `main` after the approved public Whiteboard naming release, commit `c2748287a3b33149da30c32f9fcdf4525d3ac4df`
 
 ## 1. Outcome and boundaries
 
-WP2 makes the existing CRA + React 18 + `@tldraw/tldraw@1.26.2` application safe to load and save before either the bundler or editor SDK changes.
+WP2 makes the existing Vite + React 18 + `@tldraw/tldraw@1.26.2` application safe to load and save before the editor SDK changes. The previously completed Vite and focused Forge-runtime convergence remain fixed inputs rather than work repeated by WP2.
 
 WP2 delivers:
 
@@ -22,8 +22,8 @@ WP2 delivers:
 
 WP2 does not:
 
-- upgrade tldraw, React, CRA, or the macro configuration UI;
-- upgrade beyond the focused Forge-storage convergence slice (`@forge/api@6.4.3` plus `@forge/kvs@1.2.5`);
+- upgrade tldraw, React, Vite, or the removed macro configuration UI;
+- upgrade the already-pinned Forge runtime packages; WP2 adds only the focused storage dependency `@forge/kvs@1.2.5`;
 - write a modern tldraw snapshot or modern KVS slot;
 - accept image/video assets or silently delete unsupported content;
 - change the app ID, macro key, scopes, `localId`-derived legacy key, or Marketplace listing;
@@ -38,9 +38,9 @@ Approval of this child design approves five deliberate refinements rather than h
 2. Analytics common fields use `app_version`, `app_commit`, and `environment_type` to match `conf-app`, replacing the parent design's provisional `release_version` and `environment` names.
 3. WP2 emits load/save/render/resize/recovery events; migration events begin in WP5, where migration actually occurs as a product operation.
 4. WP2 freezes the future modern key namespace and outer envelope only. WP5 freezes the SDK-specific inner snapshot after selecting the exact modern SDK.
-5. WP2 pulls only the Forge storage prerequisite forward from WP4: align `@forge/api@6.4.3` with `conf-app`, add pinned `@forge/kvs@1.2.5`, and declare one permanent `whiteboard-state` Custom Entity. Resolver/bridge/config upgrades remain in WP4. A conditional write-ahead journal serializes current-resolver writes while the legacy KVS value remains the document of record. This avoids claiming compare-and-set from the currently installed API, which has none. Activation is blocked until non-production Atlassian tests prove legacy-value visibility, missing-entity `notExists`, conditional conflict, interrupted-write recovery, and deploy version classification. Once deployed, Forge does not permit removing the entity declaration, so the rollback artifact must retain it.
+5. WP2 adds pinned `@forge/kvs@1.2.5` to the already-converged `@forge/api@6.4.3` resolver and declares one permanent `whiteboard-state` Custom Entity. The resolver/bridge/config convergence has already landed and is not repeated here. A conditional write-ahead journal serializes current-resolver writes while the legacy KVS value remains the document of record. This avoids claiming compare-and-set from the legacy storage API, which has none. Activation is blocked until non-production Atlassian tests prove legacy-value visibility, missing-entity `notExists`, conditional conflict, interrupted-write recovery, and deploy version classification. Once deployed, Forge does not permit removing the entity declaration, so the rollback artifact must retain it.
 
-If decision 1 is not acceptable without production distribution evidence, implementation may still proceed locally, but deployment of the changed load gate remains blocked.
+The user accepted decision 1 with the rest of this child design. Production promotion still requires the specified read-only version-distribution evidence or an explicit release-time acceptance of the compatibility gate; design approval alone does not manufacture that evidence.
 
 ## 2. Evidence used by this design
 
@@ -50,9 +50,9 @@ The bundled v1 SDK declares document version `15.5`. Its internal migration acce
 
 Repository history makes the older-version risk concrete without proving its distribution: the first root dependency introduction used `@tldraw/tldraw ^1.1.8`, the SPA immediately before commit `2f18c64` used `^1.1.5`, and that commit upgraded the SPA to `^1.26.2`. Raw documents may also predate the compressed envelope. WP2 therefore cannot infer that every production value is v15.5 from today's dependency alone.
 
-The installed `@forge/api@2.22.1` storage surface exposes only unconditional get/set/delete operations. Atlassian now directs apps from that feature-frozen module to [`@forge/kvs`](https://developer.atlassian.com/platform/forge/storage-reference/kvs-migration-from-legacy/), and [Custom Entity transactions](https://developer.atlassian.com/platform/forge/storage-reference/entities-transactions/) support conditional all-or-none operations. The npm-published `@forge/kvs@1.2.5` declarations contain the needed transaction filters while depending on the same `@forge/api@6.4.3` line resolved by `conf-app`. Those declarations establish a buildable design, not live-environment behavior; the five Atlassian checks in decision 5 remain mandatory.
+The current resolver is already pinned to `@forge/api@6.4.3`, but its legacy `api.storage` surface still exposes only unconditional get/set/delete operations. Atlassian directs apps from that feature-frozen surface to [`@forge/kvs`](https://developer.atlassian.com/platform/forge/storage-reference/kvs-migration-from-legacy/), and [Custom Entity transactions](https://developer.atlassian.com/platform/forge/storage-reference/entities-transactions/) support conditional all-or-none operations. The npm-published `@forge/kvs@1.2.5` declarations contain the needed transaction filters while sharing the current `@forge/api@6.4.3` line. Those declarations establish a buildable design, not live-environment behavior; the five Atlassian checks in decision 5 remain mandatory.
 
-CRA 5 builds the frontend under `static/spa`, while Forge bundles the separate resolver entry from `src/index.js`. CRA's linked-package rule expects dependencies outside its application source to be precompiled. The new shared TypeScript codec must therefore add one explicit build, then both frontend and resolver consume its package export; importing package `src` directly would not establish that both runtimes execute the same artifact.
+Vite builds the frontend under `static/spa`, while Forge bundles the separate resolver entry from `src/index.js`. The new shared TypeScript codec therefore has one explicit build, and both frontend and resolver consume its package export; importing package `src` directly would not establish that both runtimes execute the same artifact.
 
 A real, team-owned non-production Confluence fixture established the following baseline with published Marketplace build 3.4.0:
 
@@ -232,7 +232,7 @@ The real-Forge copy fixture supports the invariant that distinct fresh final seg
 
 ### 6.2 New resolver operations
 
-WP2 upgrades only the Forge storage slice: exact `@forge/api@6.4.3` to converge with `conf-app`, plus exact `@forge/kvs@1.2.5`. The document remains at its existing legacy KVS key and in its exact one-field compressed envelope. A Custom Entity named `whiteboard-state` is a write-ahead coordination journal, not a second document source.
+WP2 adds only the exact Forge storage dependency `@forge/kvs@1.2.5`; the existing exact `@forge/api@6.4.3` stays unchanged. The document remains at its existing legacy KVS key and in its exact one-field compressed envelope. A Custom Entity named `whiteboard-state` is a write-ahead coordination journal, not a second document source.
 
 | Storage approach | Result | Decision |
 |---|---|---|
@@ -455,7 +455,7 @@ debug: false outside local development
 
 The payload uses one constant anonymous `distinct_id` and blacklists URL/referrer, initial-referrer, search-engine, device ID, UTM, and click-ID fields, including `$current_url`, `$referrer`, `$referring_domain`, `$initial_referrer`, `$initial_referring_domain`, `$search_engine`, `$device_id`, all `utm_*`, `gclid`, `dclid`, `fbclid`, `msclkid`, `ttclid`, and `twclid`. Contract tests inspect the final transport payload, not only the typed wrapper input. Session replay, user identification, automatic page/content/tenant enrichment, and `ignore_dnt` are not ported from `conf-app`.
 
-The current hard-coded project token moves to `REACT_APP_MIXPANEL_TOKEN`, supplied by Actions or a gitignored local environment. A missing token disables analytics without affecting the editor.
+The current hard-coded project token moves to `VITE_MIXPANEL_TOKEN`, supplied by Actions or a gitignored local environment. A missing token disables analytics without affecting the editor.
 
 Analytics failure never blocks load, save, or retry.
 
@@ -465,14 +465,14 @@ Both frontend and resolver use an allowlist logger accepting only event code, ph
 
 ### 8.4 Exact build identity
 
-Following the smallest applicable `conf-app` pattern, the CRA build embeds and exposes:
+Following the smallest applicable `conf-app` pattern, the Vite build embeds and exposes:
 
 - exact 40-character `app_commit` from the checked-out source;
 - `app_version` as the release tag or the fixed value `unreleased`;
 - exact SDK version `1.26.2`;
 - fixed `environment_type` enum `local | ci | development | staging | production`.
 
-CRA uses `REACT_APP_*` inputs or a tiny generated build-info module rather than copying Vite-specific code. Staging and production workflows inject these values during both validation and the deploy rebuild, and contract tests require the deploy input artifact to match the verified SHA. A debug panel displays only `app_version@shortSha`, SDK, and environment; host, branch, context, content ID, and tenant data are removed. Production/staging builds fail rather than emitting `unknown` identity.
+Vite uses `VITE_*` inputs through a typed build-info module. Staging and production workflows inject these values during both validation and the deploy rebuild, and contract tests require the deploy input artifact to match the verified SHA. A debug panel displays only `app_version@shortSha`, SDK, and environment; host, branch, context, content ID, and tenant data are removed. Production/staging builds fail rather than emitting `unknown` identity.
 
 | Build | `app_version` | `app_commit` | `environment_type` |
 |---|---|---|---|
@@ -486,7 +486,7 @@ The production release must use the same source SHA that passed staging, while i
 
 This unblocks a repository-local `check-version` skill and lets PVT prove exact-artifact provenance in the iframe.
 
-## 9. Proposed module boundaries
+## 9. Module boundaries
 
 Precompiled pure-codec workspace:
 
@@ -507,7 +507,7 @@ The private package name is `@zenuml/whiteboard-codec`. It has no React, DOM, Fo
 
 The codec produces the schema-directed canonical string but does not import browser or Node crypto. Fingerprint/key helpers accept an injected `sha256Hex(canonicalUtf8)` adapter: the frontend uses Web Crypto and the resolver uses Node's crypto implementation, with each adapter responsible for exact UTF-8 encoding. Shared golden vectors require both adapters to return identical lowercase hex before either is wired to persistence.
 
-`pnpm-workspace.yaml` adds `packages/*`. Root `build:codec` runs before unit tests, CRA build, Forge lint/bundle/deploy, and tunnel. Tests import the public built package export, so a missing or stale `dist` fails rather than letting Vitest mask an integration problem. The logical CI order is codec build → unit tests → CRA build → Forge lint/deploy bundle. Package manifests, lockfile, build order, and generated-output validation remain one integrator's ownership.
+`pnpm-workspace.yaml` adds `packages/*`. Root `build:codec` runs before unit tests, the Vite build, Forge lint/bundle/deploy, and tunnel. Tests import the public built package export, so a missing or stale `dist` fails rather than letting Vitest mask an integration problem. The logical CI order is codec build → unit tests → Vite build → Forge lint/deploy bundle. Package manifests, lockfile, build order, and generated-output validation remain one integrator's ownership.
 
 Resolver boundary:
 
@@ -619,7 +619,7 @@ Every UI assertion needs an iframe screenshot/snapshot or request/resolver inter
 
 ## 11. Release and rollback
 
-WP2 is one data-safety release. CRA, tldraw v1, Forge identity, permissions, legacy key serialization, and the legacy compressed envelope remain unchanged. The only runtime dependency/manifest expansion is the approved Forge-storage slice and `whiteboard-state` journal declaration.
+WP2 is one data-safety release. Vite, tldraw v1, Forge identity, permissions, legacy key serialization, and the legacy compressed envelope remain unchanged. The only runtime dependency/manifest expansion is exact `@forge/kvs@1.2.5` and the approved `whiteboard-state` journal declaration.
 
 The document remains backward-readable by the pre-WP2 v1 binary because WP2 writes the same compressed envelope at the same key. However, Forge documents that a deployed [Custom Entity declaration](https://developer.atlassian.com/platform/forge/storage-reference/entities-manifest/) cannot later be deleted and cannot be backported. The operational rollback artifact is therefore prepared and validated before promotion: it restores the WP1 UI/behavior while retaining the WP2 manifest declaration and a journal-aware compatibility resolver. Deploying the literal pre-WP2 manifest is not an accepted rollback. No modern slot or forward-only document format is introduced.
 
