@@ -23,8 +23,10 @@ Before changing a draft, verify read-only:
 
     gh repo view --repo ZenUml/tldraw-confluence --json nameWithOwner,defaultBranchRef,url
     gh variable get TLDRAW_PRODUCTION_RELEASE_ENABLED --repo ZenUml/tldraw-confluence
-    gh variable get TLDRAW_BRAND_APPROVED --repo ZenUml/tldraw-confluence
     gh api repos/ZenUml/tldraw-confluence/environments/production-tldraw
+
+Require repository validation to enforce the fixed public manifest title
+`Whiteboard for Confluence`. Public naming has no separate approval variable.
 
 Also require the checked-in port-status record to show that production deployment,
 immutable UI provenance, an approved production fixture, visible build identity, and
