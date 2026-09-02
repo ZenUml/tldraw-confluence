@@ -213,7 +213,16 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(preflight.env.RELEASE_ENABLED).toBe(
       '${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}',
     );
-    expect(preflight.env.BRAND_APPROVED).toBe('${{ vars.TLDRAW_BRAND_APPROVED }}');
+    expect(Object.keys(preflight.env)).toEqual([
+      'RELEASE_ENABLED',
+      'RELEASE_TAG',
+      'EVENT_RELEASE_SHA',
+      'CURRENT_RELEASE_ID',
+      'CURRENT_PUBLISHED_AT',
+      'RELEASE_IS_DRAFT',
+      'RELEASE_IS_PRERELEASE',
+      'DEFAULT_BRANCH',
+    ]);
     expect(preflight.env.EVENT_RELEASE_SHA).toBe('${{ github.sha }}');
     expect(stepByName(preflight, 'Checkout release tag for verification').with['fetch-depth']).toBe(0);
     expect(stepByName(preflight, 'Checkout release tag for verification').with.ref).toBe(
@@ -278,6 +287,16 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(authorizationRecheck.env.RELEASE_ENABLED).toBe(
       '${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}',
     );
+    expect(Object.keys(authorizationRecheck.env)).toEqual([
+      'GH_TOKEN',
+      'RELEASE_ENABLED',
+      'RELEASE_ID',
+      'RELEASE_TAG',
+      'RELEASE_PUBLISHED_AT',
+      'RELEASE_SHA',
+      'FRESH_UNTIL_EPOCH',
+      'DEFAULT_BRANCH',
+    ]);
     expect(authorizationRecheck.env.FRESH_UNTIL_EPOCH).toBe(
       '${{ needs.preflight.outputs.fresh_until_epoch }}',
     );

@@ -4,7 +4,7 @@
 
 **Goal:** Give `ZenUml/tldraw-confluence` a deterministic toolchain, honest validation contract, project guidance, adapted agent skills, and gated CI/staging/release workflows modelled on `conf-app` without changing product runtime behavior.
 
-**Architecture:** One pnpm workspace and lockfile drive the existing Forge resolver, CRA Whiteboard build, repository contract tests, and an offline-collectable Playwright harness. GitHub Actions consume the same root commands. Production deployment remains disabled until the branding, production-fixture, PVT, and explicit-promotion gates in the approved programme design are closed.
+**Architecture:** One pnpm workspace and lockfile drive the existing Forge resolver, CRA Whiteboard build, repository contract tests, and an offline-collectable Playwright harness. GitHub Actions consume the same root commands. Production deployment remains disabled until the public-naming, production-fixture, PVT, provenance, lineage, and explicit-promotion gates in the approved programme design are closed.
 
 **Reference:** `docs/superpowers/specs/2026-08-31-tldraw-confluence-renovation-design.md`
 
@@ -406,7 +406,7 @@ WP1 has no real product E2E, so it must not pretend to have an automatic smoke g
 ### Production
 
 1. Trigger only when a release is published and accept only timestamped `-tldraw` tags.
-2. Use a `preflight` job with no GitHub environment. It fails unless repository variable `TLDRAW_PRODUCTION_RELEASE_ENABLED` is exactly `true` and `TLDRAW_BRAND_APPROVED` is exactly `true`, then checks out the tag, frozen-installs, and runs `pnpm validate`.
+2. Use a `preflight` job with no GitHub environment. It fails unless repository variable `TLDRAW_PRODUCTION_RELEASE_ENABLED` is exactly `true`, then checks out the tag, frozen-installs, and runs `pnpm validate`. The 2026-09-03 public-naming decision superseded WP1's separate brand-variable proposal; `pnpm validate` enforces the fixed Whiteboard manifest title instead.
 3. Use a separate `deploy` job with `needs: preflight` and job-level protected environment `production-tldraw`.
 4. Map `FORGE_EMAIL` from the `production-tldraw` environment variable and `FORGE_API_TOKEN` from its secret into the deploy job without printing either value.
 5. The deploy job checks out and rebuilds the same tag, runs authenticated official

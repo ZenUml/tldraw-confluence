@@ -20,7 +20,11 @@ describe('operational contracts', () => {
     );
     expect(manifest.app.runtime.name).toBe('nodejs22.x');
     expect(manifest.modules.macro.map(({ key }) => key)).toEqual(['whiteboard']);
-    expect(macro).toMatchObject({ key: 'whiteboard', resource: 'main' });
+    expect(macro).toMatchObject({
+      key: 'whiteboard',
+      resource: 'main',
+      title: 'Whiteboard for Confluence',
+    });
     expect(resource).toEqual({
       key: 'main',
       path: 'static/spa/build',

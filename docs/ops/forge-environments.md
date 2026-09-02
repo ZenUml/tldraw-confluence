@@ -32,20 +32,20 @@ fresh CI runner, and the CLI then tries to prompt.
 
 ## GitHub environments
 
-### Where the production gate variables must live
+### Where the production gate variable must live
 
-`TLDRAW_PRODUCTION_RELEASE_ENABLED` and `TLDRAW_BRAND_APPROVED` must be set at **repository** scope.
+`TLDRAW_PRODUCTION_RELEASE_ENABLED` must be set at **repository** scope.
 
-`release.yml` reads them from two jobs with different scopes:
+`release.yml` reads it from two jobs with different scopes:
 
 - job `preflight` declares no `environment`, so `vars.*` resolves at repository scope only;
 - job `deploy` declares `environment: production-tldraw`, so an environment variable of the same name
   would take precedence over the repository one.
 
-Setting them on the environment instead makes `preflight` see empty values and report
+Setting it on the environment instead makes `preflight` see an empty value and report
 "Production release is disabled until PVT is implemented and approved", which reads like a policy
-decision rather than a scoping mistake. Both mismatch directions currently fail closed, so production
-stays blocked either way; the cost is a misleading message, not an unsafe deploy.
+decision rather than a scoping mistake. The mismatch fails closed, so production stays blocked; the
+cost is a misleading message, not an unsafe deploy.
 
 A contract test pins `preflight.environment` as undefined, so the asymmetry cannot be removed by
 accident on the workflow side. GitHub-side variable scope is not visible to a unit test, which is why
@@ -92,7 +92,6 @@ credentials while those protections are being established.
 
 Repository-level variables gate production before the protected deployment job starts:
 
-- `TLDRAW_BRAND_APPROVED=true`
 - `TLDRAW_PRODUCTION_RELEASE_ENABLED=true`
 
 `TLDRAW_PRODUCTION_RELEASE_ENABLED` must remain unset during WP1. WP2 may enable it
@@ -144,9 +143,11 @@ the pipeline uses. Everything else on the path is in place. Once the grant happe
    never been closed: the bundler migration to Vite and the Forge SDK upgrade are runtime changes that
    no rendered-UI observation covers. A build passing and unit tests passing are not UI evidence.
 
-5. **Only then consider production.** It stays blocked by `TLDRAW_PRODUCTION_RELEASE_ENABLED` and
-   `TLDRAW_BRAND_APPROVED`, both unset, and by the branding, fixture, PVT, and approval gates named
-   above. Set those two variables at repository scope, never on an environment.
+5. **Only then consider production.** It stays blocked by the unset
+   `TLDRAW_PRODUCTION_RELEASE_ENABLED` variable and by the fixture, PVT, provenance,
+   lineage, and approval gates named above. Set the variable at repository scope,
+   never on an environment. Public naming is the fixed, validated manifest title
+   `Whiteboard for Confluence`, not a separate variable.
 
 ## Deploy versus install
 

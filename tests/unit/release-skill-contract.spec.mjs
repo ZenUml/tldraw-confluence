@@ -24,7 +24,6 @@ describe('Whiteboard release skill contracts', () => {
 
     expect(release).toContain('ZenUml/tldraw-confluence');
     expect(release).toContain('TLDRAW_PRODUCTION_RELEASE_ENABLED');
-    expect(release).toContain('TLDRAW_BRAND_APPROVED');
     expect(release).toContain('BLOCKED — production release disabled in WP1');
     expect(release).toContain('last-successful production SHA');
     expect(release).toContain('release/tag deletion');

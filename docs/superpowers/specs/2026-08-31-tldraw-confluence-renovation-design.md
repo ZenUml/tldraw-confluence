@@ -319,11 +319,11 @@ Every event includes the applicable common properties: `feature_area=whiteboard`
 
 No event or log contains board text, shape properties, compressed data, `localId`, tenant identifiers, complete Forge context, or raw exception text. Public repository fixtures are purpose-built synthetic data only.
 
-## 11. Licensing and branding gates
+## 11. Public naming and SDK licensing
 
-Branding and SDK licensing are independent gates.
+Public naming and SDK licensing are independent concerns.
 
-Before the next production release from any work package, the current manifest and Marketplace-facing `Tldraw` name must either be replaced with an approved neutral name such as “Whiteboard for Confluence,” or covered by written trademark permission. Internal repository and product identifiers may remain `tldraw`. Any Marketplace listing edit remains an explicit production-promotion action.
+On 2026-09-03 the user selected **Whiteboard for Confluence** as the fixed public name and removed the separate brand-approval variable. The current manifest and existing Marketplace listing must use that name before production is enabled. Internal repository, SDK, build, environment, command, and tag identifiers may remain `tldraw` where they describe a technical contract. Any Marketplace listing edit remains an explicit production-promotion action.
 
 Modern tldraw production use requires an applicable license key. The recommended path is a commercial license injected at build time through a protected environment. The license key is never committed. Before any modern-SDK build is deployed to a non-local Forge environment, the selected commercial or trial key must permit that environment and be validated in the real Forge iframe host context, including any CSP or egress behavior.
 

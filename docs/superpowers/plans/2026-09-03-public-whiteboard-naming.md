@@ -106,11 +106,8 @@ unchanged.
 In `tests/unit/workflow-contract.spec.mjs`:
 
 - retain the production-release enable-switch assertion;
-- remove the assertion expecting a brand-approval environment entry;
-- assert the parsed preflight and deploy authorization environments have no
-  brand-approval field;
-- assert the workflow source contains no obsolete brand-approval identifier or
-  branded-gate error message;
+- replace the assertion expecting a brand-approval environment entry with exact
+  allowlists for the preflight and deploy authorization environment keys;
 - retain all exact-SHA, stable-release, freshness, lineage, credential, and protected
   environment assertions.
 
@@ -118,7 +115,7 @@ In `tests/unit/workflow-contract.spec.mjs`:
 
 In `tests/unit/release-skill-contract.spec.mjs`:
 
-- replace the positive obsolete-variable assertion with a negative assertion;
+- remove the positive obsolete-variable assertion;
 - retain the production-enable switch, WP1 fail-closed state, exact draft/SHA,
   publication confirmation, production review, PVT, spot-check, and rollback
   assertions.
@@ -225,7 +222,7 @@ commands, environments, tags, dependency documentation, or SDK references.
 Run:
 
 ```bash
-rg -n 'TLDRAW_BRAND_APPROVED|BRAND_APPROVED|branding gate' \
+rg -n 'brand-approval|branding gate' \
   .github .claude docs tests manifest.yml
 git diff --check
 ```
@@ -379,4 +376,3 @@ Report:
 - evidence PR state;
 - production: NOT PERFORMED;
 - rollback: NOT PERFORMED.
-

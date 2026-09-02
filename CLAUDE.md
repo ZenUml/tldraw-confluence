@@ -158,7 +158,8 @@ browser, authenticate to Confluence, or prove product behavior.
   upgrade commands require a separately approved test tenant.
 - Never infer a tenant from old scripts or documentation.
 - Production promotion is disabled during WP1 and remains a separate authorized
-  action after branding, fixture, PVT, and approval gates close.
+  action after public naming, fixture, PVT, provenance, lineage, and approval gates
+  close.
 - Keep lifecycle skills aligned with `conf-app`:
   `validate-branch` → `submit-branch` → `ready-pr` → `babysit-pr` → `land-pr` →
   `release-app` → `pvt` → release-delta `spot-check`. Remove product-matrix

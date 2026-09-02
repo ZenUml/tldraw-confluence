@@ -18,7 +18,6 @@ jobs:
       fresh_until_epoch: ${{ steps.provenance.outputs.fresh_until_epoch }}
     env:
       RELEASE_ENABLED: ${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}
-      BRAND_APPROVED: ${{ vars.TLDRAW_BRAND_APPROVED }}
       RELEASE_TAG: ${{ github.event.release.tag_name }}
       EVENT_RELEASE_SHA: ${{ github.sha }}
       CURRENT_RELEASE_ID: ${{ github.event.release.id }}
@@ -33,10 +32,6 @@ jobs:
           set -euo pipefail
           if [[ "$RELEASE_ENABLED" != "true" ]]; then
             echo "Production release is disabled until PVT is implemented and approved." >&2
-            exit 1
-          fi
-          if [[ "$BRAND_APPROVED" != "true" ]]; then
-            echo "Production release is blocked by the branding gate." >&2
             exit 1
           fi
           if [[ "$RELEASE_IS_DRAFT" != "false" || "$RELEASE_IS_PRERELEASE" != "false" ]]; then
@@ -256,7 +251,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_ENABLED: ${{ vars.TLDRAW_PRODUCTION_RELEASE_ENABLED }}
-          BRAND_APPROVED: ${{ vars.TLDRAW_BRAND_APPROVED }}
           RELEASE_ID: ${{ github.event.release.id }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_PUBLISHED_AT: ${{ github.event.release.published_at }}
@@ -267,7 +261,6 @@ jobs:
         run: |
           set -euo pipefail
           test "$RELEASE_ENABLED" = "true"
-          test "$BRAND_APPROVED" = "true"
 
           gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
             > "$RUNNER_TEMP/release-after-approval.json"
