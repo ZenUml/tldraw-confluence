@@ -1,10 +1,5 @@
 import Resolver from '@forge/resolver';
 import { storage as forgeStorage } from '@forge/api';
-import ForgeUI, {
-  MacroConfig,
-  render,
-  TextField}
-  from '@forge/ui';
 
 const resolver = new Resolver();
 
@@ -84,16 +79,3 @@ resolver.define('delete-all', async ({ context }) => {
 });
 
 export const handler = resolver.getDefinitions();
-
-const Config = () => {
-
-  return (
-    <MacroConfig>
-      <TextField name="name" label="Diagram title" placeholder="Untitled Diagram" description="You need to publish this page to start drawing diagrams" isRequired="true"/>
-    </MacroConfig>
-  );
-}
-
-export const config = render(
-  <Config />
-)
