@@ -178,4 +178,3 @@ This item is complete only when:
 - identity and persistence invariants pass; and
 - the evidence register records the completed result while production release remains
   disabled until every unrelated production prerequisite closes.
-
