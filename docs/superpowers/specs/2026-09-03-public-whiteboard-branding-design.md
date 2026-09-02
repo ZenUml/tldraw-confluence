@@ -1,4 +1,4 @@
-# Public Whiteboard Branding Design
+# Public Whiteboard Naming Design
 
 **Status:** Approved by the user on 2026-09-03
 
@@ -9,32 +9,63 @@
 
 ## Objective
 
-Close the production branding gate by presenting the existing Forge app as
-**Whiteboard for Confluence** wherever customers encounter its product name. Preserve
-the installed app, macro, storage, and release identities.
-
-The Marketplace listing currently uses “Tldraw whiteboard on Confluence,” and the
-Forge manifest uses the same customer-facing title. No written trademark permission
-to retain that public name is recorded. Internal references that identify the SDK,
-repository, release route, or existing build contract remain `tldraw`.
+Present the existing Forge app as **Whiteboard for Confluence** everywhere customers
+encounter its product name. Remove the obsolete brand-approval release gate and its
+supporting workflow, skill, test, and documentation contracts. Preserve the complete
+drawing experience and every installation and storage identity.
 
 ## Decision
 
-Use **Whiteboard for Confluence** as the public product name.
+The product no longer uses Tldraw as a public brand. Its public name is
+**Whiteboard for Confluence**. Public product naming is a fixed repository contract,
+not a separately configurable approval state.
 
-Two alternatives were considered and rejected:
+The application continues to use the tldraw SDK as an implementation dependency.
+References that accurately identify the SDK, repository, package, build command,
+environment, release tag, debug key, or existing integration contract are technical
+identifiers rather than product branding and remain unchanged.
 
-- Retaining the current public name would depend on obtaining and maintaining written
-  trademark permission.
-- Renaming only the Marketplace listing would leave the installed macro and public
-  listing inconsistent.
+## Scope
 
-The neutral name follows the repository's approved domain language and removes the
-production release's dependency on unrecorded trademark permission.
+Implementation removes the obsolete brand-approval gate from:
+
+- the production release workflow and its preflight/recheck logic;
+- the `release-app` lifecycle skill;
+- workflow and skill contract tests;
+- current operations documentation; and
+- programme and implementation-plan text that otherwise instructs operators to set
+  or verify the obsolete gate.
+
+Implementation also changes the customer-facing name in:
+
+- the existing Forge manifest macro title; and
+- the existing Atlassian Marketplace listing.
+
+The Marketplace change modifies the existing listing only. It must not create a new
+listing or app lineage and remains separately approval-gated immediately before the
+external edit.
+
+## Preserved technical identifiers
+
+The removal of public Tldraw branding must not mechanically rename identifiers whose
+stability is part of the application or delivery contract. Preserve:
+
+- repository identity `ZenUml/tldraw-confluence`;
+- the `@tldraw/tldraw` package and `Tldraw` React component while that SDK remains the
+  drawing engine;
+- internal product/build identifier `tldraw`;
+- existing `forge:*:tldraw:*` commands;
+- GitHub environment names and concurrency groups containing `tldraw`;
+- the `vYYYY.MM.DDHHMM-tldraw` release-tag contract;
+- package names, fixture metadata, dependency baselines, and debug storage keys that
+  identify the SDK or existing technical interface.
+
+These names are not rendered as the Whiteboard product name. Removing or migrating
+them would be a separate compatibility change and is outside this work.
 
 ## Identity and persistence invariants
 
-Branding work must not change:
+The work must not change:
 
 - Forge app ID `368b610d-bac1-4e2a-9311-6ec0adca5e49`;
 - macro key `whiteboard`;
@@ -42,102 +73,109 @@ Branding work must not change:
 - resource and resolver keys;
 - the legacy KVS key derived from the final segment of `context.localId`;
 - stored Whiteboard values or document formats;
-- the Marketplace listing lineage;
-- internal repository, package, workflow, environment, tag, or product identifiers
-  whose contract is `tldraw`.
+- the existing Marketplace listing identity or installation lineage; or
+- the drawing, editing, saving, loading, resizing, and rendering behavior.
 
 No replacement Forge app or Marketplace listing may be created.
 
-## Customer-facing surfaces
+## Production release behavior
 
-The implementation changes only the following product-name surfaces:
+The release workflow retains the explicit production-release enable switch and all
+general release-safety controls: exact-SHA staging provenance, freshness, release
+lineage, protected production review, production fixture, PVT, and UI evidence.
 
-1. The existing manifest macro title becomes `Whiteboard for Confluence`.
-2. The existing Marketplace listing title becomes `Whiteboard for Confluence`.
-3. Marketplace prose is reviewed only for direct uses of the old product name. SDK
-   attribution remains accurate where it describes the underlying tldraw SDK.
+It no longer reads or checks a separate brand-approval variable. Instead, repository
+validation asserts the fixed public name in `manifest.yml`. Production already runs
+the complete repository validation contract against the release tag before deploy,
+so a manifest naming regression fails the same exact-SHA release validation as any
+other repository contract violation.
 
-Repository prose continues to use **Whiteboard** for the product and `tldraw` only
-for SDK, repository, tag, environment, package, or compatibility identities.
+Marketplace naming is verified operationally before the production-release enable
+switch may be turned on. It is not represented by another mutable boolean, custom
+attestation, Marketplace credential, or page-scraping step in CI. The normal release
+evidence and immutable-provenance work remains required independently; this design
+does not weaken or replace it.
 
-## Delivery boundaries
+## Delivery order and session isolation
 
-Implementation starts in an isolated worktree from current `main`. It must not copy,
+The implementation uses an isolated worktree from current `main`. It must not copy,
 commit, overwrite, or otherwise absorb changes from the active WP2 runtime worktree.
-Because that worktree also modifies `manifest.yml`, the branding branch must wait for
-the owning session to reach a durable state before integration, then rebase or merge
-normally and resolve any overlap by preserving both changes' intent.
+That worktree also modifies `manifest.yml`, so integration must preserve both owners'
+intent and must not reset, restore, stash, or clean either worktree.
 
-The code change and the Marketplace edit remain separate authorization boundaries:
+Delivery proceeds in this order:
 
-1. Add a repository contract for the approved public name.
-2. Change the manifest title without changing identity, permissions, storage, or
-   runtime behavior.
-3. Run `pnpm validate` and authenticated Forge lint through the normal delivery path.
-4. Submit and ship the code change through a feature-branch pull request.
-5. Observe the staged macro surface and retain privacy-safe UI evidence.
-6. Request separate explicit approval immediately before editing the existing public
+1. Update repository tests to reject the obsolete brand gate and require the fixed
+   Whiteboard public name.
+2. Remove the workflow, skill, and documentation gate contracts.
+3. Change only the manifest's customer-facing title.
+4. Run the full repository validation contract and confirm identity/storage paths are
+   unchanged.
+5. Submit and merge through the normal branch lifecycle.
+6. Obtain exact-SHA staging UI evidence that the Whiteboard still renders and edits.
+7. Request separate explicit approval immediately before renaming the existing
    Marketplace listing.
-7. Re-read both the listing and deployed macro surface after the edit.
-8. Set repository variable `TLDRAW_BRAND_APPROVED=true` only when both surfaces show
-   the approved name and the evidence register records that result.
-
-The variable is an attestation of completed evidence, not a switch used to bypass
-unfinished branding work. The production-release enablement variable remains unset.
+8. Re-read the existing listing after the edit and record privacy-safe evidence.
 
 ## Analytics and privacy
 
-No product analytics event is added. The change alters naming only; it introduces no
-new user action, runtime outcome, storage behavior, or failure mode.
+No product analytics event is added. The work changes naming and release
+configuration only; it introduces no new user action, runtime outcome, persistence
+behavior, or error state.
 
 Public commits and release notes contain no tenant hostname, page title or ID, cloud
 ID, credential, authenticated browser state, board body, or identifying screenshot.
-UI evidence stays in approved private storage and is referenced publicly only by a
-SHA-256 digest.
+UI evidence remains in approved private storage and is referenced publicly only by a
+privacy-safe digest.
 
 ## Verification
 
 Repository validation must prove:
 
+- no workflow, skill, test, or current operator instruction refers to the obsolete
+  brand-approval variable;
 - the manifest has exactly one `whiteboard` macro titled `Whiteboard for Confluence`;
+- the tldraw SDK dependency and drawing component remain present;
 - the Forge app ID, macro key, `storage:app` scope, resource/resolver keys, and runtime
   remain unchanged;
-- no guarded persistence or document-format path changes;
+- no persistence or document-format path changes;
 - `pnpm validate` passes;
-- the authoritative `Build and Unit Test` job passes for the exact PR head;
+- the authoritative `Build and Unit Test` job passes for the exact PR head; and
 - the exact merged SHA passes `Build and Unit Test` and Forge staging deployment.
 
 UI validation must observe the exact staged SHA and record:
 
-- the Whiteboard macro remains available under the approved public name;
-- an existing synthetic Whiteboard still renders in view and edit mode;
-- the old customer-facing product name is absent from the tested macro surface;
-- no page or board content is persisted during the check.
+- the Whiteboard macro is available under `Whiteboard for Confluence`;
+- an existing approved synthetic Whiteboard renders in view and edit mode;
+- a reversible synthetic drawing interaction works without changing storage identity;
+- the old customer-facing product name is absent from the tested macro surface; and
+- any permitted fixture mutation and cleanup are recorded.
 
 After separate Marketplace-edit approval, read-only verification must show that the
-existing listing, rather than a replacement listing, uses the approved name.
+existing listing ID uses `Whiteboard for Confluence`.
 
 ## Failure and rollback
 
-If repository validation or staging UI evidence fails, do not set the branding gate
-and do not edit the Marketplace listing.
+If repository validation or staging UI evidence fails, do not edit the Marketplace
+listing and do not enable production release.
 
-If the manifest ships but the Marketplace edit cannot be completed, leave
-`TLDRAW_BRAND_APPROVED` unset and report the inconsistent surfaces. A later normal
-feature-branch change may revert the manifest title if the owner decides consistency
-is more important than retaining the staged rename. Do not register a replacement
-app, create a second listing, rewrite release tags, or alter stored Whiteboard data.
+If the manifest ships but the Marketplace edit cannot be completed, production
+release remains disabled and the inconsistent surfaces are reported. Any rollback is
+a normal feature-branch change; do not register a replacement app, create another
+listing, rewrite release tags, or alter stored Whiteboard data.
 
 If the Marketplace title is changed and post-edit verification fails, stop and
 request direction. Do not automatically rename, delete, or recreate the listing.
 
 ## Completion criteria
 
-The branding blocker is closed only when:
+This item is complete only when:
 
+- the obsolete brand-approval gate and its repository contracts are removed;
 - the manifest and existing Marketplace listing both use `Whiteboard for Confluence`;
-- exact-SHA staging UI evidence is recorded;
-- identity and persistence invariants pass repository validation;
-- the evidence register records the completed checks; and
-- `TLDRAW_BRAND_APPROVED` is exactly `true` at repository scope.
+- exact-SHA validation and staging UI evidence confirm the drawing experience remains
+  functional;
+- identity and persistence invariants pass; and
+- the evidence register records the completed result while production release remains
+  disabled until every unrelated production prerequisite closes.
 
