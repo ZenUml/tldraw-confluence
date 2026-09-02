@@ -16,7 +16,7 @@ Before opening a browser, require all of:
 - an explicitly approved production fixture containing only synthetic board content;
 - an authorized authenticated browser that can enter the Forge iframe;
 - the expected release tag and exact deployed SHA from `release-app`;
-- a product-visible or network-observable build identity tied to that tag and SHA;
+- a product-visible build identity tied to that tag and SHA, verified with the project `check-version` skill;
 - authorization for any edit/save/reload mutation in the fixture.
 
 Report every missing prerequisite by name before stopping. If the approved fixture
@@ -26,8 +26,9 @@ is missing, include the canonical status:
 
 If the fixture exists but another prerequisite is missing, report that actual item
 instead—for example `BLOCKED — no visible build identity` or
-`BLOCKED — no authorized production browser`. WP1 currently lacks both an approved
-production fixture and visible build identity, so report both missing items.
+`BLOCKED — no authorized production browser`. The application now exposes build
+identity; production validation remains blocked until an approved production fixture
+and authorized production browser exist.
 
 Do not open an arbitrary tenant, infer a page from legacy scripts, mutate customer
 content, or claim PASS from staging, CI, unit tests, a build, or test collection.
@@ -37,8 +38,8 @@ content, or claim PASS from staging, CI, unit tests, a build, or test collection
 Once prerequisites exist, invoke the project `spot-check` skill and record these
 assertions before navigation:
 
-1. The expected release tag/build identity is observable in the Whiteboard iframe or
-   a trusted request.
+1. The project `check-version` skill verifies the expected release tag, exact SHA,
+   SDK, and production environment in the Whiteboard iframe.
 2. The existing synthetic board renders without an error state.
 3. If mutation is authorized, one controlled edit saves and remains present after a
    reload.

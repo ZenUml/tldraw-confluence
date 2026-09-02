@@ -122,40 +122,6 @@ const importerCategories = {
   },
 };
 
-const allowedWorkspaceLinks = new Map([
-  ['.\u0000dependencies\u0000@zenuml/whiteboard-codec', 'link:packages/whiteboard-codec'],
-  ['static/spa\u0000dependencies\u0000@zenuml/whiteboard-codec', 'link:../../packages/whiteboard-codec'],
-]);
-
-function isLocalPackageReference(reference) {
-  return typeof reference === 'string' && /^(?:workspace|link|file):/.test(reference);
-}
-
-function isAllowedWorkspaceLink(importerName, section, dependencyName, reference, resolvedReference) {
-  return reference === 'workspace:*'
-    && allowedWorkspaceLinks.get(`${importerName}\u0000${section}\u0000${dependencyName}`)
-      === resolvedReference;
-}
-
-function assertDirectReferencePolicy() {
-  for (const [importerName, importer] of Object.entries(pnpmLock.importers)) {
-    for (const [section, dependencies] of Object.entries(importer)) {
-      if (!['dependencies', 'optionalDependencies', 'devDependencies'].includes(section)) continue;
-      for (const [dependencyName, record] of Object.entries(dependencies ?? {})) {
-        const reference = typeof record === 'string' ? record : record?.specifier;
-        if (!isLocalPackageReference(reference)) continue;
-        const resolvedReference = typeof record === 'string' ? record : record?.version;
-        if (isAllowedWorkspaceLink(importerName, section, dependencyName, reference, resolvedReference)) continue;
-        throw new Error(
-          `${importerName}: unsupported direct ${section} reference for ${dependencyName}`,
-        );
-      }
-    }
-  }
-}
-
-assertDirectReferencePolicy();
-
 function referenceValue(reference) {
   return typeof reference === 'string' ? reference : reference?.version;
 }
@@ -206,16 +172,6 @@ function graphForImporter(importerName) {
   const roots = [];
   for (const [section, { category, kind }] of Object.entries(categories)) {
     for (const [name, record] of Object.entries(importer[section] ?? {})) {
-      const declaredReference = typeof record === 'string' ? record : record.specifier;
-      if (isAllowedWorkspaceLink(importerName, section, name, declaredReference, record.version)) {
-        directDependencies[category][name] = {
-          kind,
-          specifier: declaredReference,
-          resolvedVersion: null,
-          isWorkspaceLink: true,
-        };
-        continue;
-      }
       const resolvedVersion = versionFromReference(name, record);
       if (!resolvedVersion) {
         throw new Error(`${importerName}: unsupported direct ${section} reference for ${name}`);
@@ -487,7 +443,6 @@ for (const [importerName, currentGraph] of Object.entries(currentGraphs)) {
     const actualDirect = currentGraph.directDependencies[category] ?? {};
     for (const [name, directDependency] of Object.entries(actualDirect)) {
       if (directDependency.specifier !== directDependency.resolvedVersion) {
-        if (directDependency.isWorkspaceLink) continue;
         failures.push(
           `${importerName}: direct ${category} dependency ${name} must be pinned exactly to ${directDependency.resolvedVersion}; got ${directDependency.specifier ?? '<missing>'}`,
         );

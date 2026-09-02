@@ -181,6 +181,10 @@ jobs:
 
       - name: Validate release tag
         run: pnpm validate
+        env:
+          VITE_APP_COMMIT: ${{ steps.provenance.outputs.release_sha }}
+          VITE_APP_VERSION: ${{ github.event.release.tag_name }}
+          VITE_ENVIRONMENT_TYPE: production
 
   deploy:
     name: Deploy to Forge Production
@@ -213,6 +217,11 @@ jobs:
 
       - name: Rebuild and validate release commit
         run: pnpm validate
+        env:
+          VITE_APP_COMMIT: ${{ needs.preflight.outputs.release_sha }}
+          VITE_APP_VERSION: ${{ github.event.release.tag_name }}
+          VITE_ENVIRONMENT_TYPE: production
+          VITE_MIXPANEL_TOKEN: ${{ vars.VITE_MIXPANEL_TOKEN }}
 
       # This job sits in the workflow that the release event triggers, so its
       # `environment: production-tldraw` supplies both the variable and the secret

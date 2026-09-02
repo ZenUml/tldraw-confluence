@@ -18,6 +18,9 @@ importers:
       '@forge/api':
         specifier: 6.4.3
         version: 6.4.3
+      '@forge/kvs':
+        specifier: 1.2.5
+        version: 1.2.5
       '@forge/resolver':
         specifier: 1.7.1
         version: 1.7.1
@@ -767,6 +770,9 @@ packages:
 
   '@forge/i18n@0.0.7':
     resolution: {integrity: sha512-EKrQApcuI4k4AkUSeERkZv1dQaGjWsmB8i7ciDPtpDARPRH1sOrU+FSEOoA7b9FQ15++7Q144m94w/aMLCg5Gg==}
+
+  '@forge/kvs@1.2.5':
+    resolution: {integrity: sha512-8iFA9c6cYI3jU3LFlIe87+VXkrntJtJxk5NTQPRC53/Dx7UBWP8IUK5h/v6IL3ipjM2TOIlV9jCAp/c77csChg==}
 
   '@forge/lint@5.19.0':
     resolution: {integrity: sha512-1h0DPxjnXuzFD8UExbkBlepNgE6LO4iIrwuhe3R+Sxt9Yp0OH8GBbP/VPaw5lapmpmTtPsyMEXTpBTZIMuVeVw==}
@@ -4430,23 +4436,12 @@ packages:
   read-cache@1.0.0:
     resolution: {integrity: sha512-Owdv/Ft7IjOgm/i0xvNDZ1LrRANRfew4b2prF3OWMQLxLfu3bS8FVhCsrSCMK4lR56Y9ya+AThoTpDCTxCmpRA==}
 
-  readable-stream@2.3.7:
-    resolution: {integrity: sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==}
-
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
-
-  readable-stream@3.6.0:
-    resolution: {integrity: sha512-BViHy7LKeTz4oNnkcLJ+lVSL6vpiFeX6/d3oSH8zCW7UxP2onchk+vTGB143xuFjHS3deTgkKoXXymXqymiIdA==}
-    engines: {node: '>= 6'}
 
   readable-stream@3.6.2:
     resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
     engines: {node: '>= 6'}
-
-  readable-stream@4.4.2:
-    resolution: {integrity: sha512-Lk/fICSyIhodxy1IDK2HazkeGjSmezAWX2egdtJnYhtzKEsBPJowlI6F6LPb5tqIQILrMbx22S5o3GuJavPusA==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
   readable-stream@4.7.0:
     resolution: {integrity: sha512-oIGGmcpTLwPga8Bn6/Z75SVaH1z5dUut2ibSyAMVhmUggWpmDn2dapB0n7f8nwaSiRtepAsfJyfXIO5DCVAODg==}
@@ -6245,6 +6240,10 @@ snapshots:
   '@forge/i18n@0.0.7':
     dependencies:
       lodash: 4.18.1
+
+  '@forge/kvs@1.2.5':
+    dependencies:
+      '@forge/api': 6.4.3
 
   '@forge/lint@5.19.0(@types/node@22.13.9)(cheerio@1.2.0)(typescript@4.8.4)':
     dependencies:
@@ -9194,7 +9193,7 @@ snapshots:
     dependencies:
       inherits: 2.0.4
       obuf: 1.1.2
-      readable-stream: 2.3.7
+      readable-stream: 2.3.8
       wbuf: 1.7.3
 
   html-encoding-sniffer@2.0.1:
@@ -9724,7 +9723,7 @@ snapshots:
 
   lzutf8@0.6.3:
     dependencies:
-      readable-stream: 4.4.2
+      readable-stream: 4.7.0
 
   magic-string@0.30.21:
     dependencies:
@@ -10450,16 +10449,6 @@ snapshots:
     dependencies:
       pify: 2.3.0
 
-  readable-stream@2.3.7:
-    dependencies:
-      core-util-is: 1.0.3
-      inherits: 2.0.4
-      isarray: 1.0.0
-      process-nextick-args: 2.0.1
-      safe-buffer: 5.1.2
-      string_decoder: 1.1.1
-      util-deprecate: 1.0.2
-
   readable-stream@2.3.8:
     dependencies:
       core-util-is: 1.0.3
@@ -10470,25 +10459,11 @@ snapshots:
       string_decoder: 1.1.1
       util-deprecate: 1.0.2
 
-  readable-stream@3.6.0:
-    dependencies:
-      inherits: 2.0.4
-      string_decoder: 1.3.0
-      util-deprecate: 1.0.2
-
   readable-stream@3.6.2:
     dependencies:
       inherits: 2.0.4
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
-
-  readable-stream@4.4.2:
-    dependencies:
-      abort-controller: 3.0.0
-      buffer: 6.0.3
-      events: 3.3.0
-      process: 0.11.10
-      string_decoder: 1.3.0
 
   readable-stream@4.7.0:
     dependencies:
@@ -10849,7 +10824,7 @@ snapshots:
       detect-node: 2.1.0
       hpack.js: 2.1.6
       obuf: 1.1.2
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
       wbuf: 1.7.3
     transitivePeerDependencies:
       - supports-color

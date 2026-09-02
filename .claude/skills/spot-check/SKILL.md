@@ -26,6 +26,7 @@ Record:
     [ ] Behavior | observable signal | method | expected result | evidence location
 
 Keep creation and editing assertions separate. Do not treat a successful page load as proof that saving, reloading, or error handling works.
+When an exact commit is part of the claim, invoke `check-version` and include its identity evidence as a separate assertion.
 
 ## 2. Check authorization and reachability
 

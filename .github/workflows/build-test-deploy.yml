@@ -44,6 +44,10 @@ jobs:
 
       - name: Validate
         run: pnpm validate
+        env:
+          VITE_APP_COMMIT: ${{ github.sha }}
+          VITE_APP_VERSION: unreleased
+          VITE_ENVIRONMENT_TYPE: ci
 
   staging:
     name: Stage tested main commit

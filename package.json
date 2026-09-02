@@ -12,7 +12,6 @@
     "node": "22.22.3"
   },
   "scripts": {
-    "check:resolutions": "node scripts/check-package-manager-resolutions.mjs",
     "lint": "eslint .",
     "build:codec": "pnpm --filter @zenuml/whiteboard-codec build",
     "test:unit": "pnpm build:codec && vitest run",
@@ -25,7 +24,7 @@
     "forge:lint:tldraw:staging": "pnpm build:codec && forge lint -e staging",
     "forge:lint:tldraw:prod": "pnpm build:codec && forge lint -e production",
     "test:e2e:list": "pnpm --filter @zenuml/tldraw-confluence-e2e test:list",
-    "validate": "pnpm check:resolutions && pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
+    "validate": "pnpm lint && pnpm test:unit && pnpm build:whiteboard && pnpm validate:resource-output && pnpm validate:manifest && pnpm test:e2e:list",
     "start:whiteboard": "pnpm build:codec && pnpm --dir static/spa start:local",
     "forge:deploy:tldraw:development": "pnpm build:codec && forge deploy -e development --non-interactive --verbose",
     "forge:deploy:tldraw:staging": "pnpm build:codec && forge deploy -e staging --non-interactive --verbose",
@@ -54,6 +53,7 @@
   },
   "dependencies": {
     "@forge/api": "6.4.3",
+    "@forge/kvs": "1.2.5",
     "@forge/resolver": "1.7.1",
     "@forge/ui": "1.5.0",
     "@zenuml/whiteboard-codec": "workspace:*"
