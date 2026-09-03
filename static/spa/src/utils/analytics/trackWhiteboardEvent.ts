@@ -1,4 +1,5 @@
 import { WHITEBOARD_ANALYTICS_CATALOG } from './catalog';
+import { UNKNOWN_CLIENT_DOMAIN } from './clientDomain';
 import type {
   WhiteboardAnalyticsTransport,
   WhiteboardBuildMetadata,
@@ -8,6 +9,7 @@ import type {
 
 type CreateWhiteboardAnalyticsOptions = {
   buildMetadata: WhiteboardBuildMetadata;
+  getClientDomain?: () => string | undefined;
   token?: string;
   transport?: WhiteboardAnalyticsTransport;
 };
@@ -73,6 +75,7 @@ function isValidBuildMetadata(buildMetadata: WhiteboardBuildMetadata): boolean {
 
 export function createWhiteboardAnalytics({
   buildMetadata,
+  getClientDomain,
   token,
   transport,
 }: CreateWhiteboardAnalyticsOptions) {
@@ -135,6 +138,7 @@ export function createWhiteboardAnalytics({
           feature_area: 'whiteboard',
           surface: 'confluence_macro',
           macro_type: 'whiteboard',
+          client_domain: getClientDomain?.() || UNKNOWN_CLIENT_DOMAIN,
           ...buildMetadata,
           distinct_id: 'whiteboard-anonymous',
           outcome: event.outcome,

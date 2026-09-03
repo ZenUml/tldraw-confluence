@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { WHITEBOARD_ANALYTICS_CATALOG } from '../../static/spa/src/utils/analytics/catalog.ts';
+import { clientDomainFromForgeContext } from '../../static/spa/src/utils/analytics/clientDomain.ts';
 import { createWhiteboardAnalytics } from '../../static/spa/src/utils/analytics/trackWhiteboardEvent.ts';
 
 const VALID_BUILD_METADATA = {
@@ -22,6 +23,12 @@ function createTestAnalytics(sent, buildMetadata = VALID_BUILD_METADATA) {
 }
 
 describe('Whiteboard analytics contract', () => {
+  it('derives client_domain from Forge siteUrl like conf-app', () => {
+    expect(clientDomainFromForgeContext({
+      siteUrl: 'https://example-tenant.atlassian.net/wiki',
+    })).toBe('example-tenant');
+  });
+
   it('publishes the approved lifecycle event catalog', () => {
     expect(Object.keys(WHITEBOARD_ANALYTICS_CATALOG)).toEqual([
       'whiteboard_load_requested',
@@ -143,6 +150,7 @@ describe('Whiteboard analytics contract', () => {
         feature_area: 'whiteboard',
         surface: 'confluence_macro',
         macro_type: 'whiteboard',
+        client_domain: 'unknown_atlassian_domain',
         app_version: 'unreleased',
         app_commit: '0123456789abcdef0123456789abcdef01234567',
         sdk_version: '1.26.2',
@@ -152,6 +160,24 @@ describe('Whiteboard analytics contract', () => {
         schema_target: '15.5',
       },
     }]);
+  });
+
+  it('auto-enriches every event with client_domain like conf-app', () => {
+    const sent = [];
+    const analytics = createWhiteboardAnalytics({
+      buildMetadata: VALID_BUILD_METADATA,
+      getClientDomain: () => 'example-tenant',
+      token: 'public-project-token',
+      transport: {
+        init: () => {},
+        track: (eventName, properties) => sent.push({ eventName, properties }),
+      },
+    });
+
+    expect(analytics.track('whiteboard_load_requested', { schema_target: '15.5' })).toEqual({
+      kind: 'sent',
+    });
+    expect(sent[0].properties.client_domain).toBe('example-tenant');
   });
 
   it('drops an event instead of sending an unknown property', () => {

@@ -301,7 +301,7 @@ The WP2 load/save/error experience and the WP5 SDK migration are user-impacting 
 
 For every later work package that changes user-visible behavior, the analytics catalog and typed properties are the first implementation commit for that work package.
 
-Every event includes the applicable common properties: `feature_area=whiteboard`, `surface=confluence_macro`, `macro_type=whiteboard`, `release_version`, `sdk_version`, `environment`, and `outcome`. Failure events use a stable error code rather than raw exception text.
+Every event includes the applicable common properties: `feature_area=whiteboard`, `surface=confluence_macro`, `macro_type=whiteboard`, `client_domain`, `release_version`, `sdk_version`, `environment`, and `outcome`. As in `conf-app`, `client_domain` is derived from the Forge context `siteUrl` and falls back to `unknown_atlassian_domain`. Failure events use a stable error code rather than raw exception text.
 
 | Event | Trigger | Core properties |
 |---|---|---|
@@ -317,7 +317,7 @@ Every event includes the applicable common properties: `feature_area=whiteboard`
 | `whiteboard_render_failed` | the editor cannot render a validated snapshot | SDK version, stable error code |
 | `whiteboard_resize_succeeded` / `whiteboard_resize_failed` | viewport persistence resolves | size bucket, outcome |
 
-No event or log contains board text, shape properties, compressed data, `localId`, tenant identifiers, complete Forge context, or raw exception text. Public repository fixtures are purpose-built synthetic data only.
+No event or log contains board text, shape properties, compressed data, `localId`, complete Forge context, or raw exception text. Analytics may contain the `client_domain` tenant prefix to match `conf-app`; logs and public repository artifacts must not contain real tenant identifiers. Public repository fixtures are purpose-built synthetic data only.
 
 ## 11. Public naming and SDK licensing
 

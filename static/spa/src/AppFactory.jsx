@@ -11,7 +11,10 @@ import Debug from './Debug/Debug.jsx';
 import WhiteboardErrorBoundary from './components/WhiteboardErrorBoundary.jsx';
 import WhiteboardStatus from './components/WhiteboardStatus.jsx';
 import { createOrderedSaveQueue } from './persistence/createOrderedSaveQueue.mjs';
-import { whiteboardAnalytics } from './utils/analytics/analytics';
+import {
+  setWhiteboardAnalyticsContext,
+  whiteboardAnalytics,
+} from './utils/analytics/analytics';
 
 const DEFAULT_HEIGHT = 400;
 
@@ -75,7 +78,14 @@ function triggerDownload(recovery) {
   return sizeBucket(recovery);
 }
 
-export default function createApp(invoke) {
+export default function createApp(invoke, getContext) {
+  const analyticsContextReady = getContext
+    ? Promise.resolve()
+      .then(() => getContext())
+      .then((context) => setWhiteboardAnalyticsContext(context))
+      .catch(() => setWhiteboardAnalyticsContext())
+    : Promise.resolve();
+
   return function App() {
     const [loadState, setLoadState] = React.useState({ kind: 'loading' });
     const [saveState, setSaveState] = React.useState({ kind: 'confirmed' });
@@ -88,6 +98,7 @@ export default function createApp(invoke) {
     const persistChainRef = React.useRef(Promise.resolve());
 
     const load = React.useCallback(async () => {
+      await analyticsContextReady;
       const started = performance.now();
       armedRef.current = false;
       appRef.current = null;
