@@ -98,18 +98,21 @@ Repository-level variables gate production before the protected deployment job s
 only after an approved production fixture, automated PVT, immutable UI provenance,
 and an authoritative last-successful-production SHA record exist.
 
-Before production can be enabled, replace the WP1 release-body evidence pointer with
-an immutable, workflow-verifiable evidence artifact or attestation. The current
-manual hash/reviewer gate is sufficient only while production is disabled.
+Before production can be enabled, the protected draft workflow must attest a canonical
+staging-evidence statement containing the exact main SHA, staging run, and private UI
+evidence hash. Production reconstructs that statement and verifies its digest, signer
+workflow, and GitHub-hosted runner before deploy.
 
 The normal workflow's release-lineage query protects ordinary stale reruns and
-out-of-order approvals, but the GitHub release list and tags are not the production
-system of record. Before enabling production, persist each successful production SHA
-in a tamper-resistant deployment record or attestation, require that SHA to be an
-ancestor of the next candidate, and govern release/tag deletion and mutation.
+out-of-order approvals. Each successful protected production job additionally attests
+a canonical deployment ledger containing its exact SHA. The next release selects the
+latest successful `production-tldraw` deployment record, verifies the corresponding
+ledger's signer workflow, and requires that SHA to be an ancestor of the candidate.
+The only no-ledger case is the first production release; it creates the bootstrap ledger.
 [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)
 are an additional repository control, not a replacement for that deployment record.
-The read-only WP1 audit found immutable releases disabled.
+Immutable releases were enabled at repository scope on 2026-09-03 and are rechecked
+both before and after protected production approval.
 
 ## After the app contributor role is granted
 

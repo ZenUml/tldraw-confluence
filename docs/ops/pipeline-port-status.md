@@ -12,28 +12,40 @@ Status vocabulary:
 - `DEFERRED` — a later work package owns it;
 - `SKIPPED` — not applicable to this app.
 
+## WP2 production-readiness update — 2026-09-03
+
+| Gate | Status | Evidence |
+|---|---:|---|
+| Exact-SHA Forge staging deployment | LIVE | Main run `33701370551` deployed merge SHA `b7194f9c39825f1d4e87baa3b98017183f9885a6` after authenticated Forge lint |
+| Visible staging build identity | LIVE | Approved synthetic fixture displayed `unreleased@b7194f9 · SDK 1.26.2 · staging`; private iframe screenshot SHA-256 `da67129a8019645fb3cbf0f12da591098f5abefbaf2334d4a4972d77728cfdb7` |
+| Saved-document reload | BLOCKED | The same fixture exposed a viewport-only mount-fingerprint false positive; private failure screenshot SHA-256 `ff187819537d0da4c4bf5015e3f6827962e38c48e0a8da9154d4e0181dc9fd53`. A separate mount fingerprint and draw/save/reload regression are locally green but must be merged and reverified on staging before release. |
+| Approved production PVT fixture | LOCAL | The existing team-owned non-production Confluence fixture contains synthetic-only Whiteboard instances and is reachable through the authorized browser. Production identity/edit/reload evidence can exist only after the first production deploy. |
+| Signed staging UI provenance | LOCAL | The protected draft workflow creates a canonical evidence statement and signs it with `actions/attest@v4`; production reconstructs and verifies its digest and signer. Live proof requires the next exact-SHA draft run. |
+| Production lineage authority | LOCAL | Repository immutable releases are enabled. The release workflow verifies the latest successful protected production deployment's signed SHA ledger and ancestry; the first release is the sole no-ledger bootstrap and creates that ledger after deploy. |
+| Production switch | BLOCKED | `TLDRAW_PRODUCTION_RELEASE_ENABLED` remains unset until the saved-document reload fix passes exact-SHA staging UI verification. |
+
 | Item | Decision | Status | Validation/evidence |
 |---|---|---:|---|
 | Node/pnpm workspace and one lock | Adapt | LOCAL | Clean frozen install passes; the resolution guard accepts exactly 31 reviewed entries, including the user's three Option A build-only convergence entries |
 | Root validation commands | Adapt | LOCAL | Secretless/offline `pnpm validate` passes end to end; authenticated official Forge lint remains a separate protected-deploy gate |
-| Repository contract tests | Adapt | LOCAL | Vitest: 32/32 covering dependency resolution, workflow/release semantics, adapted skills, and manifest validation |
-| Playwright harness | Adapt | LOCAL | Normal and `CI=1` collection each find exactly one non-product sentinel in one file |
+| Repository contract tests | Adapt | LOCAL | Vitest: 99/99 covering dependency resolution, workflow/release semantics, persistence, codec, analytics, adapted skills, and manifest validation |
+| Playwright harness | Adapt | LOCAL | Two synthetic browser tests cover empty load/edit/save/reload and fail-closed invalid-data recovery; both execute successfully, not merely collect |
 | Project guidance | Adapt | LOCAL | Symlink, stale-text, privacy, all checked local-link, and whitespace checks pass; an unreferenced legacy PNG with an embedded non-placeholder tenant hostname was removed |
-| PR CI | Adapt | LOCAL | Every branch push and PR runs `Build and Unit Test`; branch-key concurrency deduplicates push/PR runs; staging remains main-only |
-| Forge staging | Adapt | STRUCTURAL ONLY | Exact-SHA/protected-environment definition reviewed; build stays on Node 22.22.3, the Forge CLI uses the shared Node 20 workaround, and authenticated lint precedes raw deploy; no deploy or UI claim executed |
+| PR CI | Adapt | LIVE | PR #27's exact head passed `Build and Unit Test`; merge SHA `b7194f9c39825f1d4e87baa3b98017183f9885a6` then passed the main job and protected staging deploy in run `33701370551` |
+| Forge staging | Adapt | LIVE | Exact-SHA deployment and visible build identity passed; the required edit/save/reload assertion found the mount-fingerprint defect recorded in the WP2 readiness table and therefore still blocks release |
 | GitHub protection configuration | Adapt | BLOCKED | Read-only remote audit found no environments, repository-level Actions variables/secrets, branch protection, or ruleset; configure the documented controls before merge |
 | Draft release | Adapt | STRUCTURAL ONLY | Main-run, evidence-hash, freshness, required delta-notes, stable-release, and reviewer gates reviewed; no draft created |
 | Production release | Adapt | STRUCTURAL ONLY | Public naming is fixed as Whiteboard rather than controlled by a separate brand variable; production remains disabled until fixture, PVT, immutable provenance, lineage authority, and the two independent publication/environment approval gates close |
-| Production lineage authority | Adapt | BLOCKED | Normal workflow races are guarded, but remote releases/tags are mutable and immutable releases are disabled; production enablement needs a tamper-resistant last-successful-production SHA record plus deletion/mutation governance |
+| Production lineage authority | Adapt | LOCAL | Repository immutable releases are enabled; signed staging evidence and signed successful-deployment ledger enforcement are implemented locally and await their protected workflow runs |
 | `validate-branch` | Adapt | LOCAL | Skill contract passes and its first locally scoped, non-deploying path, `pnpm validate`, succeeds; UI is correctly `SKIPPED — no runtime change` |
 | `forge-tunnel` | Adapt | BLOCKED | Skill schema and command contract pass; authenticated identity and environment/version discovery work, but Atlassian explicitly denies original-app install access, proving the available identity is not an app contributor |
 | `spot-check` | Adapt | LIVE | A published Marketplace 3.4.0 baseline was exercised on an approved non-production synthetic fixture: create/edit/save/reload passed, and a fresh-`localId` same-page clone produced independent persisted rendered state through edits and reloads; this does not claim the WP1 branch artifact was deployed |
 | PR lifecycle skill set | Adapt | LOCAL | Schemas and read-only GitHub discovery/help pass; all state-changing halves remain structural |
 | Dependency updates | Adapt | LOCAL | Weekly dev-tool-only Dependabot contract present; product/runtime packages are excluded in WP1 |
 | License metadata alignment | Defer | DEFERRED | `LICENSE.md` is Apache-2.0 while existing package metadata says MIT/ISC; owner/legal confirmation required before changing either |
-| `release-app` | Adapt | STRUCTURAL ONLY | Single-app fresh exact-SHA draft → required delta notes → explicit publish → independent production review → deploy → PVT → delta spot-check contract exists; its fail-closed WP1 gate prevents publication |
-| Whiteboard smoke/PVT | Adapt | BLOCKED | The non-production Marketplace baseline is live, but formal release PVT still needs an approved production fixture, visible build identity, and contributor access capable of deploying the exact release artifact |
-| `check-version` | Defer | DEFERRED | Needs a visible release tag/SHA |
+| `release-app` | Adapt | LOCAL | Single-app fresh exact-SHA draft → signed evidence → explicit publish → independent production review → deploy → signed ledger → PVT → delta spot-check contract passes locally; publication remains disabled until exact-SHA staging reload passes |
+| Whiteboard smoke/PVT | Adapt | LOCAL | The approved team-owned synthetic fixture and authorized browser are reachable; production identity/edit/reload evidence must run immediately after the first production deploy |
+| `check-version` | Adapt | LIVE | The approved staging iframe visibly reported the expected full-SHA-correlated `unreleased@b7194f9 · SDK 1.26.2 · staging` identity |
 | `health-check` | Defer | DEFERRED | Needs deployed lifecycle events and a baseline |
 | Cloudflare, D1, paywall, product-variant pipeline | Skip | SKIPPED | No equivalent infrastructure in this app |
 | Source settings/hooks | Skip | SKIPPED | Machine/account-specific and not portable |
@@ -45,14 +57,12 @@ The target lifecycle deliberately keeps the same shape as the reference project:
 `validate → submit Draft → ready → babysit exact SHA → land → main staging → SHA-pinned draft → release-app → production deploy → PVT → delta-driven spot-check`
 
 The single Whiteboard app removes only product matrices, canary/soak ordering,
-Cloudflare publication, manifest variant rewrites, and tenant-specific recipes. WP1
-also retains three explicit temporary safety differences: staging is main-only, draft
-creation waits for reviewed UI evidence while product E2E is absent, and production is
-disabled until immutable evidence, an approved fixture, visible build identity, and
-PVT exist. A tamper-resistant last-successful-production SHA record must also replace
-the mutable release list as the deployment-history authority before production is
-enabled. These differences must shrink as their prerequisites land; they are not a
-second release model.
+Cloudflare publication, manifest variant rewrites, and tenant-specific recipes.
+Staging remains main-only. Draft creation requires reviewed UI evidence, and production
+requires immutable signed staging evidence, an approved fixture, visible build
+identity, an independently reviewed environment, immediate PVT, and a signed ledger
+for the latest successful protected production deployment. The first production
+release is the sole no-ledger bootstrap and creates that ledger after deploy.
 
 ## Package-resolution evidence
 
@@ -72,9 +82,9 @@ The isolated npm and clean pnpm builds each contain 14 files. Their final filena
 
 Forge CLI 12.20.1 requires authentication before `forge lint`; no authless CLI flag exists. An existing gitignored workspace credential was supplied explicitly for a read-only audit without copying it into this repository. With that identity, official `forge lint` passes with zero errors and the same six existing warnings reported by the structural validator. Pull-request validation still receives no Forge credentials.
 
-That identity is not a contributor to the original Whiteboard Forge app. Environment and version metadata are visible, but `forge install list --json` is explicitly denied for this app while the same identity succeeds against an app where it is a contributor. Atlassian documents that every app contributor can view installations, so the install-list denial is the decisive boundary; metadata visibility is not evidence of deploy authority. Exact-branch tunnel/deploy validation remains blocked until an original-app owner grants the identity an appropriate [contributor role](https://developer.atlassian.com/platform/forge/contributors/). No deploy, registration, installation, or upgrade was attempted during the audit.
+The identity used by the earlier local audit was not a contributor to the original Whiteboard Forge app. Environment and version metadata were visible, but `forge install list --json` was explicitly denied for this app while the same identity succeeded against an app where it was a contributor. That local boundary did not authorize deploys. The protected GitHub staging job subsequently exercised its separately held Forge credential and deployed the exact main SHA; no installation or upgrade was performed.
 
-The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `validate(false, manifestPath)` through `pnpm validate:manifest`. The command fails only on diagnostics whose level is `error`; the unchanged manifest currently reports zero errors and six existing warnings. This structural validator is narrower than full Forge CLI lint. Protected staging and production steps inject Forge credentials only into one step. That step disables Forge analytics once, runs the environment-explicit `pnpm forge:lint:tldraw:staging` or `pnpm forge:lint:tldraw:prod`, then the raw environment deploy script. Build/validation stays on Node 22.22.3; only the Forge CLI segment switches to Node 20 to match the reference pipeline's node-fetch workaround. Those deployment paths remain `STRUCTURAL ONLY` until exercised live.
+The implemented secretless adaptation pins `@forge/manifest@12.7.0` and runs `validate(false, manifestPath)` through `pnpm validate:manifest`. The command fails only on diagnostics whose level is `error`; the current manifest reports zero errors and six existing warnings. This structural validator is narrower than full Forge CLI lint. Protected staging and production steps inject Forge credentials only into one step. That step disables Forge analytics once, runs the environment-explicit `pnpm forge:lint:tldraw:staging` or `pnpm forge:lint:tldraw:prod`, then the raw environment deploy script. Build/validation stays on Node 22.22.3; only the Forge CLI segment switches to Node 20 to match the reference pipeline's node-fetch workaround. The staging path is now LIVE; production remains gated.
 
 ## Where each deploy job's Forge credential comes from
 
@@ -112,7 +122,7 @@ and the measurement is what the workflows are built on.
 - all ten repository skills pass the bundled `skill-creator` structural validator;
 - all four workflow files plus `manifest.yml` parse as YAML, and all 16 checked local Markdown links resolve;
 - read-only GitHub repository/PR/help discovery: PASS; no workflow is registered on `main` before this branch lands;
-- remote immutable releases: disabled; authoritative production-SHA ledger: absent and required before production enablement;
+- remote immutable releases: enabled; signed production-SHA ledger enforcement is implemented locally and becomes LIVE after the first protected production deploy;
 - Forge tunnel help: PASS; authenticated identity and environment/version discovery work, original-app install discovery is denied for lack of contributor access, and port 3000 is free;
 - guarded runtime diff against `a3393e1`: empty;
 - `git diff --check`: PASS;
@@ -142,7 +152,7 @@ WP1 must leave these paths byte-for-byte unchanged from approval commit `a3393e1
 - `static/spa/public/**`
 - `atlassian-migration/index.js`
 
-UI validation for WP1 tooling remains `SKIPPED — no runtime change`. The Marketplace 3.4.0 non-production baseline above is `LIVE`, but it is not an exact-SHA staging claim. Exact-branch staging UI validation remains blocked by original-app contributor access and visible build identity.
+UI validation for the historical WP1 tooling-only diff remains `SKIPPED — no runtime change`. The Marketplace 3.4.0 non-production baseline above is `LIVE`, but it is not an exact-SHA staging claim. Exact-SHA staging deployment and visible build identity are now `LIVE`; the WP2 table records the separate saved-document reload failure that still blocks production.
 
 ## Existing license-metadata discrepancy
 

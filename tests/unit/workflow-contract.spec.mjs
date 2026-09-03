@@ -196,12 +196,20 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(preflight.permissions).toEqual({ actions: 'read', contents: 'read' });
     expect(draft.needs).toBe('preflight');
     expect(draft.environment).toEqual({ name: 'staging-tldraw-release' });
+    expect(draft.permissions).toEqual({
+      attestations: 'write',
+      contents: 'write',
+      'id-token': 'write',
+    });
     expect(source).toContain('^[0-9a-f]{64}$');
     expect(source).toContain('gh run view "$MAIN_RUN_ID"');
     expect(source).toContain('.workflowName == "Build, Test and Stage"');
     expect(source).toContain('endswith("Deploy to Forge Staging")');
     expect(source).toContain('--target "$COMMIT_SHA"');
     expect(source).toContain('--draft');
+    expect(source).toContain('whiteboard-staging-evidence/v1');
+    expect(source).toContain('actions/attest@v4');
+    expect(source).toContain('Staging evidence attestation SHA-256:');
   });
 
   it('keeps production disabled, provenance-gated, stable-only, and exact-SHA pinned', () => {
@@ -212,7 +220,11 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(workflow.name).toBe('Release');
     expect(workflow.on.release.types).toEqual(['released']);
     expect(workflow.on.release.types).not.toContain('prereleased');
-    expect(workflow.permissions).toEqual({ actions: 'read', contents: 'read' });
+    expect(workflow.permissions).toEqual({
+      actions: 'read',
+      attestations: 'read',
+      contents: 'read',
+    });
     expect(preflight.environment).toBeUndefined();
     expect(JSON.stringify(preflight)).not.toMatch(/FORGE_(?:EMAIL|API_TOKEN)/u);
     expect(preflight.outputs.release_sha).toBe('${{ steps.provenance.outputs.release_sha }}');
@@ -253,6 +265,13 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(source).toContain('git merge-base --is-ancestor');
     expect(source).toContain('Staging run ID: (?<run>[0-9]+)');
     expect(source).toContain('UI evidence SHA-256: (?<hash>[0-9a-f]{64})');
+    expect(source).toContain('Staging evidence attestation SHA-256: (?<attestation>[0-9a-f]{64})');
+    expect(source).toContain('gh attestation verify');
+    expect(source).toContain('prepare-draft-release.yml');
+    expect(source).toContain('repos/${GITHUB_REPOSITORY}/immutable-releases');
+    expect(source).toContain('whiteboard-production-deployment/v1');
+    expect(source).toContain('environment=production-tldraw');
+    expect(source).toContain('No prior successful production deployment; using first-release bootstrap');
     expect(source).toContain('(?<notes>\\\\n\\\\n## Changes\\\\n[\\\\s\\\\S]+)');
     expect(source).not.toContain('(?<notes>\\\\n\\\\n## Changes\\\\n[\\\\s\\\\S]+)?');
     expect(source).toContain('CURRENT_RELEASE_ID');
@@ -288,6 +307,12 @@ describe('WP1 GitHub workflow contracts', () => {
       'cancel-in-progress': false,
     });
     expect(deploy.environment).toEqual({ name: 'production-tldraw' });
+    expect(deploy.permissions).toEqual({
+      actions: 'read',
+      attestations: 'write',
+      contents: 'read',
+      'id-token': 'write',
+    });
     expect(deploy.env).toBeUndefined();
     expect(stepByName(deploy, 'Checkout verified release commit').with.ref).toBe(
       '${{ needs.preflight.outputs.release_sha }}',
@@ -346,6 +371,9 @@ describe('WP1 GitHub workflow contracts', () => {
       FORGE_EMAIL: '${{ vars.FORGE_EMAIL }}',
       FORGE_API_TOKEN: '${{ secrets.FORGE_API_TOKEN }}',
     });
+    expect(stepByName(deploy, 'Attest successful production deployment').uses).toBe(
+      'actions/attest@v4',
+    );
     const credentialGuard = stepByName(deploy, 'Verify Forge credentials are present');
     expect(credentialGuard.env).toEqual({
       FORGE_EMAIL: '${{ vars.FORGE_EMAIL }}',

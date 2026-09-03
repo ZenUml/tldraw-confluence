@@ -26,6 +26,12 @@ test('@missing mounts a truly empty board and saves one explicit stroke', async 
   await expect(page.locator('[data-shape]')).toHaveCount(1);
   await expect.poll(() => page.evaluate(() => window.__WHITEBOARD_FIXTURE_COUNTS__['save-document']))
     .toBe(1);
+
+  await page.reload();
+  await expect(page.locator('#TD-PrimaryTools')).toBeVisible();
+  await expect(page.locator('[data-shape]')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => ({ ...window.__WHITEBOARD_FIXTURE_COUNTS__ })))
+    .toEqual({ 'load-document': 1 });
   expect(pageErrors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('missing-draw-saved.png'), fullPage: true });
 });

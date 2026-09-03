@@ -1,6 +1,6 @@
 import type { LegacyDocument, Sha256Hex } from './types.js';
 
-type FingerprintMode = 'codec' | 'editor';
+type FingerprintMode = 'codec' | 'editor' | 'mount';
 
 type StoredRecord = Record<string, unknown>;
 
@@ -142,15 +142,16 @@ export function canonicalizeLegacyDocument(
       orderedPageState(pageState, mode),
     ]),
     Object.entries(document.assets),
-    document.viewport === undefined ? null : document.viewport.height,
+    mode === 'mount' || document.viewport === undefined ? null : document.viewport.height,
   ]);
 }
 
 export async function fingerprintLegacyDocument(
   document: LegacyDocument,
   sha256Hex: Sha256Hex,
-): Promise<{ codec: string; editor: string }> {
+): Promise<{ codec: string; editor: string; mount: string }> {
   const codec = await sha256Hex(canonicalizeLegacyDocument(document, 'codec'));
   const editor = await sha256Hex(canonicalizeLegacyDocument(document, 'editor'));
-  return { codec, editor };
+  const mount = await sha256Hex(canonicalizeLegacyDocument(document, 'mount'));
+  return { codec, editor, mount };
 }

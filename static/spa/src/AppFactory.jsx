@@ -163,7 +163,7 @@ export default function createApp(invoke) {
         setLoadState({
           kind: 'mount-probing',
           document: deepClone(validation.value),
-          fingerprint: fingerprints.editor,
+          fingerprint: fingerprints.mount,
           sourceFormat: sourceFormat(result.kind),
           started,
         });
@@ -198,7 +198,7 @@ export default function createApp(invoke) {
           return;
         }
         const fingerprints = await fingerprintLegacyDocument(validation.value, sha256Hex);
-        if (fingerprints.editor !== loadState.fingerprint) {
+        if (fingerprints.mount !== loadState.fingerprint) {
           setLoadState({ kind: 'invalid', errorCode: 'editor_migration_changed_persistent_data', canRecover: true });
           return;
         }
