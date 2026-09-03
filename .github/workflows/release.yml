@@ -6,6 +6,7 @@ on:
 
 permissions:
   actions: read
+  attestations: read
   contents: read
 
 jobs:
@@ -30,6 +31,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            | jq -e '.enabled == true' > /dev/null || {
+              echo "GitHub immutable releases must remain enabled." >&2
+              exit 1
+            }
           if [[ "$RELEASE_ENABLED" != "true" ]]; then
             echo "Production release is disabled until PVT is implemented and approved." >&2
             exit 1
@@ -119,13 +127,29 @@ jobs:
 
           PROVENANCE=$(jq -er '
             (.release.body // "")
-            | capture("^Staging run ID: (?<run>[0-9]+)\\nUI evidence SHA-256: (?<hash>[0-9a-f]{64})(?<notes>\\n\\n## Changes\\n[\\s\\S]+)\\n?$")
+            | capture("^Staging run ID: (?<run>[0-9]+)\\nUI evidence SHA-256: (?<hash>[0-9a-f]{64})\\nStaging evidence attestation SHA-256: (?<attestation>[0-9a-f]{64})(?<notes>\\n\\n## Changes\\n[\\s\\S]+)\\n?$")
             | select(.notes | sub("^\\n\\n## Changes\\n"; "") | test("[^[:space:]]"))
           ' "$GITHUB_EVENT_PATH") || {
             echo "Release notes require the staged-run/evidence header and a non-empty Changes section." >&2
             exit 1
           }
           MAIN_RUN_ID=$(jq -r '.run' <<< "$PROVENANCE")
+          EVIDENCE_HASH=$(jq -r '.hash' <<< "$PROVENANCE")
+          EVIDENCE_ATTESTATION=$(jq -r '.attestation' <<< "$PROVENANCE")
+          STAGING_EVIDENCE_FILE="$RUNNER_TEMP/whiteboard-staging-evidence.json"
+          jq -cnS \
+            --arg schema "whiteboard-staging-evidence/v1" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit_sha "$RELEASE_SHA" \
+            --arg main_run_id "$MAIN_RUN_ID" \
+            --arg ui_evidence_sha256 "$EVIDENCE_HASH" \
+            '{schema: $schema, repository: $repository, commitSha: $commit_sha, mainRunId: $main_run_id, uiEvidenceSha256: $ui_evidence_sha256}' \
+            > "$STAGING_EVIDENCE_FILE"
+          test "$(sha256sum "$STAGING_EVIDENCE_FILE" | cut -d ' ' -f 1)" = "$EVIDENCE_ATTESTATION"
+          gh attestation verify "$STAGING_EVIDENCE_FILE" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/prepare-draft-release.yml" \
+            --deny-self-hosted-runners > /dev/null
 
           gh run view "$MAIN_RUN_ID" \
             --repo "$GITHUB_REPOSITORY" \
@@ -142,6 +166,58 @@ jobs:
              and .workflowName == "Build, Test and Stage"
              and any(.jobs[]; (.name | endswith("Deploy to Forge Staging")) and .conclusion == "success")' \
             "$RUNNER_TEMP/main-run.json" > /dev/null
+
+          LAST_SUCCESSFUL_PRODUCTION_SHA=""
+          DEPLOYMENTS=$(gh api --method GET \
+            "repos/${GITHUB_REPOSITORY}/deployments" \
+            -f environment=production-tldraw -F per_page=100)
+          while IFS= read -r DEPLOYMENT; do
+            DEPLOYMENT_ID=$(jq -er '.id' <<< "$DEPLOYMENT")
+            DEPLOYMENT_SHA=$(jq -er '.sha' <<< "$DEPLOYMENT")
+            DEPLOYMENT_SUCCEEDED=$(gh api \
+              "repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}/statuses" \
+              --jq 'any(.[]; .state == "success")')
+            if [[ "$DEPLOYMENT_SUCCEEDED" == "true" ]]; then
+              LAST_SUCCESSFUL_PRODUCTION_SHA="$DEPLOYMENT_SHA"
+              break
+            fi
+          done < <(jq -c '.[]' <<< "$DEPLOYMENTS")
+
+          if [[ -n "$LAST_SUCCESSFUL_PRODUCTION_SHA" ]]; then
+            if [[ ! "$LAST_SUCCESSFUL_PRODUCTION_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "The production deployment ledger returned an invalid SHA." >&2
+              exit 1
+            fi
+            git fetch --no-tags origin \
+              "+${LAST_SUCCESSFUL_PRODUCTION_SHA}:refs/remotes/origin/last-production"
+            if ! git merge-base --is-ancestor "$LAST_SUCCESSFUL_PRODUCTION_SHA" "$RELEASE_SHA"; then
+              echo "Last successful production SHA is not an ancestor of this release." >&2
+              exit 1
+            fi
+            if [[ -n "$PREVIOUS_RELEASE_TAG" \
+                  && "$PREVIOUS_RELEASE_SHA" != "$LAST_SUCCESSFUL_PRODUCTION_SHA" ]]; then
+              echo "Previous immutable release does not match the last successful production deployment." >&2
+              exit 1
+            fi
+            PRODUCTION_LEDGER_FILE="$RUNNER_TEMP/whiteboard-production-deployment.json"
+            jq -cnS \
+              --arg schema "whiteboard-production-deployment/v1" \
+              --arg repository "$GITHUB_REPOSITORY" \
+              --arg environment "production-tldraw" \
+              --arg release_sha "$LAST_SUCCESSFUL_PRODUCTION_SHA" \
+              '{schema: $schema, repository: $repository, environment: $environment, releaseSha: $release_sha}' \
+              > "$PRODUCTION_LEDGER_FILE"
+            gh attestation verify "$PRODUCTION_LEDGER_FILE" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --deny-self-hosted-runners > /dev/null
+          else
+            if [[ -n "$PREVIOUS_RELEASE_TAG" ]]; then
+              echo "A previous immutable release exists without a successful production ledger." >&2
+              exit 1
+            fi
+            echo "No prior successful production deployment; using first-release bootstrap."
+          fi
 
           MAIN_RUN_CREATED_AT=$(jq -er '.createdAt' "$RUNNER_TEMP/main-run.json")
           MAIN_RUN_UPDATED_AT=$(jq -er '.updatedAt' "$RUNNER_TEMP/main-run.json")
@@ -196,6 +272,11 @@ jobs:
       cancel-in-progress: false
     environment:
       name: production-tldraw
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
     steps:
       - name: Checkout verified release commit
         uses: actions/checkout@v5
@@ -270,6 +351,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$RELEASE_ENABLED" = "true"
+          gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            | jq -e '.enabled == true' > /dev/null
 
           gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
             > "$RUNNER_TEMP/release-after-approval.json"
@@ -335,6 +419,28 @@ jobs:
         env:
           FORGE_EMAIL: ${{ vars.FORGE_EMAIL }}
           FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+
+      - name: Create production deployment ledger
+        id: production-ledger
+        env:
+          RELEASE_SHA: ${{ needs.preflight.outputs.release_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          LEDGER_FILE="$RUNNER_TEMP/whiteboard-production-deployment.json"
+          jq -cnS \
+            --arg schema "whiteboard-production-deployment/v1" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg environment "production-tldraw" \
+            --arg release_sha "$RELEASE_SHA" \
+            '{schema: $schema, repository: $repository, environment: $environment, releaseSha: $release_sha}' \
+            > "$LEDGER_FILE"
+          echo "path=$LEDGER_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Attest successful production deployment
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ steps.production-ledger.outputs.path }}
 
       - name: Upload production inputs
         uses: actions/upload-artifact@v6

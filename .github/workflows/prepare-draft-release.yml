@@ -86,16 +86,47 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
+      attestations: write
       contents: write
+      id-token: write
     environment:
       name: staging-tldraw-release
     steps:
+      - name: Create signed staging evidence
+        id: evidence
+        env:
+          COMMIT_SHA: ${{ needs.preflight.outputs.commit_sha }}
+          MAIN_RUN_ID: ${{ needs.preflight.outputs.main_run_id }}
+          EVIDENCE_HASH: ${{ needs.preflight.outputs.evidence_hash }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE_FILE="$RUNNER_TEMP/whiteboard-staging-evidence.json"
+          jq -cnS \
+            --arg schema "whiteboard-staging-evidence/v1" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit_sha "$COMMIT_SHA" \
+            --arg main_run_id "$MAIN_RUN_ID" \
+            --arg ui_evidence_sha256 "$EVIDENCE_HASH" \
+            '{schema: $schema, repository: $repository, commitSha: $commit_sha, mainRunId: $main_run_id, uiEvidenceSha256: $ui_evidence_sha256}' \
+            > "$EVIDENCE_FILE"
+          {
+            echo "path=$EVIDENCE_FILE"
+            echo "digest=$(sha256sum "$EVIDENCE_FILE" | cut -d ' ' -f 1)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Attest staging evidence
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ steps.evidence.outputs.path }}
+
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ needs.preflight.outputs.commit_sha }}
           MAIN_RUN_ID: ${{ needs.preflight.outputs.main_run_id }}
           EVIDENCE_HASH: ${{ needs.preflight.outputs.evidence_hash }}
+          EVIDENCE_ATTESTATION: ${{ steps.evidence.outputs.digest }}
         shell: bash
         run: |
           set -euo pipefail
@@ -104,6 +135,7 @@ jobs:
           {
             echo "Staging run ID: $MAIN_RUN_ID"
             echo "UI evidence SHA-256: $EVIDENCE_HASH"
+            echo "Staging evidence attestation SHA-256: $EVIDENCE_ATTESTATION"
           } > "$NOTES"
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \

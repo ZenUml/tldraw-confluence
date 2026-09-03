@@ -24,9 +24,10 @@ describe('Whiteboard release skill contracts', () => {
 
     expect(release).toContain('ZenUml/tldraw-confluence');
     expect(release).toContain('TLDRAW_PRODUCTION_RELEASE_ENABLED');
-    expect(release).toContain('BLOCKED — production release disabled in WP1');
-    expect(release).toContain('last-successful production SHA');
-    expect(release).toContain('release/tag deletion');
+    expect(release).toContain('BLOCKED — production release prerequisites are not enabled');
+    expect(release).toContain('latest successful protected production deployment');
+    expect(release).toContain('signed SHA ledger');
+    expect(release).toContain('Never delete or recreate a release or tag');
     expect(release).toContain('explicit confirmation');
     expect(release).toContain('second independent authorization');
     expect(release).toContain('Publication never authorizes');
@@ -68,12 +69,12 @@ describe('Whiteboard release skill contracts', () => {
     expect(pvt).not.toMatch(/cloudflare|wrangler/iu);
   });
 
-  it('records release and PVT as adapted while keeping unsupported signals deferred', () => {
+  it('records locally validated release and PVT capabilities while deferring health signals', () => {
     const status = read('docs/ops/pipeline-port-status.md');
 
-    expect(status).toMatch(/\| `release-app` \| Adapt \| STRUCTURAL ONLY \|/u);
-    expect(status).toMatch(/\| Whiteboard smoke\/PVT \| Adapt \| BLOCKED \|/u);
-    expect(status).toMatch(/\| `check-version` \| Defer \| DEFERRED \|/u);
+    expect(status).toMatch(/\| `release-app` \| Adapt \| LOCAL \|/u);
+    expect(status).toMatch(/\| Whiteboard smoke\/PVT \| Adapt \| LOCAL \|/u);
+    expect(status).toMatch(/\| `check-version` \| Adapt \| LIVE \|/u);
     expect(status).toMatch(/\| `health-check` \| Defer \| DEFERRED \|/u);
   });
 

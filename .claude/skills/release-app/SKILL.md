@@ -24,18 +24,24 @@ Before changing a draft, verify read-only:
     gh repo view --repo ZenUml/tldraw-confluence --json nameWithOwner,defaultBranchRef,url
     gh variable get TLDRAW_PRODUCTION_RELEASE_ENABLED --repo ZenUml/tldraw-confluence
     gh api repos/ZenUml/tldraw-confluence/environments/production-tldraw
+    gh api repos/ZenUml/tldraw-confluence/immutable-releases
 
 Require repository validation to enforce the fixed public manifest title
 `Whiteboard for Confluence`. Public naming has no separate approval variable.
 
-Also require the checked-in port-status record to show that production deployment,
-immutable UI provenance, an approved production fixture, visible build identity, and
-Whiteboard PVT are live. It must also identify a tamper-resistant authoritative
-record of the last-successful production SHA and active release/tag deletion
-governance; the mutable GitHub release list is not that record. During WP1 these
-preconditions deliberately fail. Report:
+Also require the checked-in port-status record to show that the production workflow,
+signed staging-evidence path, approved production fixture, visible build identity,
+and Whiteboard PVT procedure are ready. GitHub immutable releases must be enabled.
+The workflow must identify the latest successful protected production deployment,
+verify its signed SHA ledger, and require that SHA to be an ancestor of the candidate.
+The first production release may have no previous successful deployment; it is the
+only bootstrap case and must create the first signed ledger after Forge deploy.
 
-    BLOCKED — production release disabled in WP1
+Do not require a production PVT result before the first production deployment: PVT
+is the mandatory immediate post-deploy gate in Step 5. If the readiness prerequisites
+or repository release switch are not enabled, report:
+
+    BLOCKED — production release prerequisites are not enabled
 
 Then stop before editing a draft, publishing, rerunning CI, changing variables or
 environments, or invoking a deploy command. Never weaken or set a gate from this
@@ -64,8 +70,9 @@ Require the tag timestamp to be within the last 24 hours at selection time. Requ
 `targetCommitish` to resolve to one exact commit SHA on `main`. Read the referenced
 `Build, Test and Stage` push run and prove that this same SHA passed both `Build and
 Unit Test` and `Deploy to Forge Staging`, completed before the tag was generated, and
-is also within the last 24 hours. Require the release body to begin with the
-staging-run ID and approved evidence reference. Never use a draft targeting a movable
+is also within the last 24 hours. Require the release body to begin with the staging
+run ID, approved evidence hash, and signed staging-evidence attestation digest. Never
+use a draft targeting a movable
 branch, an earlier green SHA, or an unverified rerun.
 
 Resolve the previous published `-tldraw` release SHA. When one exists, require it to
@@ -76,7 +83,7 @@ skill by treating it as a normal release.
 
 If there is no usable draft, report `BLOCKED — no verified staged draft`. Do not push
 a synthetic commit, dispatch staging, create a replacement draft, or select another
-release.
+release. Never delete or recreate a release or tag to bypass a failed gate.
 
 ## 2. Establish the release delta and notes
 

@@ -71,16 +71,15 @@ approve or bypass the second gate.
 
 WP1 intentionally leaves `TLDRAW_PRODUCTION_RELEASE_ENABLED` unset and labels the production path `STRUCTURAL ONLY / UNVALIDATED`. Do not publish a release during WP1. WP2 must add the production fixture and PVT path before the gate can be enabled.
 
-The WP1 release body is a reviewed pointer, not immutable provenance. Before enabling
-production, WP2 must bind the UI evidence to a workflow-generated immutable artifact
-or attestation and verify it during deployment.
+The protected draft workflow signs a canonical staging-evidence statement with
+GitHub artifact attestations. Production reconstructs it from the exact SHA,
+staging-run ID, and private evidence hash, then verifies its digest and signer.
 
-The two lineage checks close normal stale-rerun and approval-order races, but they
-query mutable GitHub release/tag state. Before production is enabled, WP2 must add a
-tamper-resistant authoritative record of the last successful production SHA and
-require it to be an ancestor of each candidate. Release/tag deletion and mutation
-must also be governed; the current remote has immutable releases disabled. Until
-then, this workflow remains structural and production stays hard-disabled.
+The two release-lineage checks close normal stale-rerun and approval-order races.
+Repository immutable releases govern release/tag mutation. Each successful protected
+production job signs a canonical SHA ledger; the next release verifies the ledger for
+the latest successful `production-tldraw` deployment and requires that SHA to be its
+ancestor. The first release is the sole no-ledger bootstrap and creates that record.
 
 Normal production delivery:
 
