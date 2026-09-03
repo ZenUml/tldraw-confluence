@@ -7,7 +7,10 @@ async function createApp() {
       import('./AppFactory.jsx'),
       import('./testing/createDevelopmentFixtureInvoke'),
     ]);
-    return createAppFactory(createDevelopmentFixtureInvoke(import.meta.env.VITE_WHITEBOARD_FIXTURE));
+    return createAppFactory(
+      createDevelopmentFixtureInvoke(import.meta.env.VITE_WHITEBOARD_FIXTURE),
+      () => Promise.resolve({ siteUrl: 'https://example-tenant.atlassian.net' }),
+    );
   }
   return (await import('./App.js')).default;
 }
