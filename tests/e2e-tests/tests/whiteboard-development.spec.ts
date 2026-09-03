@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 test('@missing mounts a truly empty board and saves one explicit stroke', async ({ page }, testInfo) => {
   const pageErrors: string[] = [];
@@ -32,6 +33,9 @@ test('@missing mounts a truly empty board and saves one explicit stroke', async 
 test('@invalid stays non-editable and downloads the fixed recovery wrapper', async ({ page }, testInfo) => {
   const pageErrors: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') pageErrors.push(message.text());
+  });
 
   await page.goto('/');
   await expect(page.locator('[data-testid="whiteboard-load-error"]')).toContainText(
@@ -46,6 +50,17 @@ test('@invalid stays non-editable and downloads the fixed recovery wrapper', asy
     page.getByRole('button', { name: 'Download recovery file' }).click(),
   ]);
   expect(download.suggestedFilename()).toBe('whiteboard-recovery.json');
+  const recoveryPath = await download.path();
+  expect(recoveryPath).not.toBeNull();
+  const recovery = JSON.parse(await readFile(recoveryPath!, 'utf8'));
+  expect(recovery).toEqual({
+    kind: 'whiteboard-recovery',
+    formatVersion: 1,
+    source: 'stored',
+    value: { syntheticInvalid: true },
+  });
+  await expect.poll(() => page.evaluate(() => ({ ...window.__WHITEBOARD_FIXTURE_COUNTS__ })))
+    .toEqual({ 'load-document': 1, 'download-recovery': 1 });
   expect(pageErrors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('invalid-recovery.png'), fullPage: true });
 });
