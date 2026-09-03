@@ -35,5 +35,25 @@ permissions:
     - storage:app
 app:
   id: ari:cloud:ecosystem::app/368b610d-bac1-4e2a-9311-6ec0adca5e49
+  storage:
+    entities:
+      - name: whiteboard-state
+        attributes:
+          schemaVersion:
+            type: integer
+          revision:
+            type: integer
+          state:
+            type: string
+          currentToken:
+            type: string
+          expectedToken:
+            type: string
+          candidateToken:
+            type: string
+          writeId:
+            type: string
+          compressedJson:
+            type: string
   runtime:
     name: nodejs22.x

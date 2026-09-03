@@ -6,6 +6,7 @@ export default [
   {
     ignores: [
       '**/node_modules/**',
+      'packages/whiteboard-codec/dist/**',
       'static/spa/build/**',
       'atlassian-migration/**',
       'coverage/**',

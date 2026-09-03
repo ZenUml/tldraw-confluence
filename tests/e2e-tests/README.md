@@ -2,11 +2,12 @@
 
 This directory contains the Playwright workspace for the Confluence Whiteboard macro.
 
-## WP1 status
+## WP2 local synthetic coverage
 
-WP1 provides collection plumbing only. It has exactly one harness sentinel and
-**zero product UI assertions**. Collection proves that Playwright can load the
-configuration and discover a spec; it is not an E2E run and supplies no UI evidence.
+The checked-in suite runs two Vite development servers with named synthetic adapters.
+It proves the local loading/error UI, zero initial save, one explicit stroke save,
+recovery filename, build surface, and production-mock exclusion contract. Screenshots
+are written only to Playwright's ignored output directory.
 
 From the repository root, collect the sentinel with:
 
@@ -20,13 +21,16 @@ Or invoke the workspace directly:
 pnpm --filter @zenuml/tldraw-confluence-e2e test:list
 ```
 
-Both commands must work without credentials, a `.env` file, an installed browser,
-an auth state, a tenant URL, or network access.
+Collection must work without credentials, a `.env` file, an installed browser, an
+auth state, a tenant URL, or network access. A full local run requires Chromium:
 
-## WP2 handoff
+```bash
+pnpm --filter @zenuml/tldraw-confluence-e2e test
+```
 
-WP2 removes the sentinel and introduces the first behavioral suite. Its child design
-owns all of the following:
+## Real Forge handoff
+
+The local synthetic suite is not real-Forge evidence. Exact-SHA staging/PVT still owns:
 
 - approved staging fixture and authentication configuration;
 - synthetic legacy KVS fixtures and semantic fingerprints;
@@ -34,6 +38,5 @@ owns all of the following:
 - create, load, edit, resize, save, reload, and failure journeys;
 - screenshots, traces, and resolver or network evidence for UI assertions.
 
-Until those pieces exist, do not add skipped product journeys or describe this
-directory as product coverage. See the
+Do not describe collection or the synthetic suite as Atlassian UI evidence. See the
 [approved renovation design](../../docs/superpowers/specs/2026-08-31-tldraw-confluence-renovation-design.md).

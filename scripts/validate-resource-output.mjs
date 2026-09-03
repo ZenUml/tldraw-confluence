@@ -46,6 +46,24 @@ for (const assetUrl of [...scriptAssets, ...styleAssets]) {
   }
 }
 
+const javascript = fs.readdirSync(path.join(buildDirectory, 'assets'))
+  .filter((name) => name.endsWith('.js'))
+  .map((name) => fs.readFileSync(path.join(buildDirectory, 'assets', name), 'utf8'))
+  .join('\n');
+for (const forbiddenMarker of [
+  '__WHITEBOARD_FIXTURE_COUNTS__',
+  'Unsupported development fixture',
+  'syntheticInvalid',
+  'VITE_WHITEBOARD_FIXTURE',
+]) {
+  if (javascript.includes(forbiddenMarker)) {
+    throw new Error(`Production resource contains development fixture marker: ${forbiddenMarker}`);
+  }
+}
+if (!javascript.includes('whiteboard-build-identity') || !javascript.includes('1.26.2')) {
+  throw new Error('Production resource is missing the visible Whiteboard build identity');
+}
+
 console.log(
-  `Validated static/spa/build/index.html: ${scriptAssets.length} relative script asset(s), ${styleAssets.length} relative stylesheet asset(s).`,
+  `Validated static/spa/build/index.html: ${scriptAssets.length} relative script asset(s), ${styleAssets.length} relative stylesheet asset(s); development fixtures excluded and build identity present.`,
 );

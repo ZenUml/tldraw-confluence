@@ -34,6 +34,11 @@ jobs:
 
       - name: Validate exact commit
         run: pnpm validate
+        env:
+          VITE_APP_COMMIT: ${{ github.sha }}
+          VITE_APP_VERSION: unreleased
+          VITE_ENVIRONMENT_TYPE: staging
+          VITE_MIXPANEL_TOKEN: ${{ vars.VITE_MIXPANEL_TOKEN }}
 
       - name: Verify current default-branch tip
         env:

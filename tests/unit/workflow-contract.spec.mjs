@@ -65,7 +65,11 @@ describe('WP1 GitHub workflow contracts', () => {
     );
     const validate = stepByName(workflow.jobs.build, 'Validate');
     expect(validate.run).toBe('pnpm validate');
-    expect(validate.env).toBeUndefined();
+    expect(validate.env).toEqual({
+      VITE_APP_COMMIT: '${{ github.sha }}',
+      VITE_APP_VERSION: 'unreleased',
+      VITE_ENVIRONMENT_TYPE: 'ci',
+    });
     expect(workflow.jobs.staging).toMatchObject({
       name: 'Stage tested main commit',
       needs: 'build',
@@ -113,7 +117,12 @@ describe('WP1 GitHub workflow contracts', () => {
     );
     const forgeDeploy = stepByName(deploy, 'Deploy existing app to Forge staging');
     expect(validate.run).toBe('pnpm validate');
-    expect(validate.env).toBeUndefined();
+    expect(validate.env).toEqual({
+      VITE_APP_COMMIT: '${{ github.sha }}',
+      VITE_APP_VERSION: 'unreleased',
+      VITE_ENVIRONMENT_TYPE: 'staging',
+      VITE_MIXPANEL_TOKEN: '${{ vars.VITE_MIXPANEL_TOKEN }}',
+    });
     const tipCheck = stepByName(deploy, 'Verify current default-branch tip');
     expect(tipCheck.run).toContain('refs/remotes/origin/${DEFAULT_BRANCH}');
     // A superseded commit is the expected outcome of two merges in quick succession.
@@ -229,6 +238,11 @@ describe('WP1 GitHub workflow contracts', () => {
       '${{ github.sha }}',
     );
     expect(stepByName(preflight, 'Verify staged release provenance').id).toBe('provenance');
+    expect(stepByName(preflight, 'Validate release tag').env).toEqual({
+      VITE_APP_COMMIT: '${{ steps.provenance.outputs.release_sha }}',
+      VITE_APP_VERSION: '${{ github.event.release.tag_name }}',
+      VITE_ENVIRONMENT_TYPE: 'production',
+    });
     expect(source).toContain('RELEASE_IS_DRAFT');
     expect(source).toContain('RELEASE_IS_PRERELEASE');
     expect(source).toContain('refs/tags/${RELEASE_TAG}^{commit}');
@@ -300,7 +314,12 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(authorizationRecheck.env.FRESH_UNTIL_EPOCH).toBe(
       '${{ needs.preflight.outputs.fresh_until_epoch }}',
     );
-    expect(stepByName(deploy, 'Rebuild and validate release commit').env).toBeUndefined();
+    expect(stepByName(deploy, 'Rebuild and validate release commit').env).toEqual({
+      VITE_APP_COMMIT: '${{ needs.preflight.outputs.release_sha }}',
+      VITE_APP_VERSION: '${{ github.event.release.tag_name }}',
+      VITE_ENVIRONMENT_TYPE: 'production',
+      VITE_MIXPANEL_TOKEN: '${{ vars.VITE_MIXPANEL_TOKEN }}',
+    });
     const forgeDeploy = stepByName(deploy, 'Deploy existing app to Forge production');
     const forgeNode = stepByName(
       deploy,
@@ -447,12 +466,12 @@ describe('WP1 GitHub workflow contracts', () => {
     expect(rootPackage.scripts['forge:deploy:disable-analytics']).toBe(
       'forge settings set usage-analytics false',
     );
-    expect(rootPackage.scripts['forge:lint']).toBe('forge lint');
+    expect(rootPackage.scripts['forge:lint']).toBe('pnpm build:codec && forge lint');
     expect(rootPackage.scripts['forge:deploy:tldraw:staging']).toBe(
-      'forge deploy -e staging --non-interactive --verbose',
+      'pnpm build:codec && forge deploy -e staging --non-interactive --verbose',
     );
     expect(rootPackage.scripts['forge:deploy:tldraw:prod']).toBe(
-      'forge deploy -e production --non-interactive --verbose',
+      'pnpm build:codec && forge deploy -e production --non-interactive --verbose',
     );
     expect(rootPackage.scripts['forge:deploy:tldraw:production']).toBe(
       'pnpm forge:deploy:tldraw:prod',
