@@ -5,7 +5,7 @@ This repository is public. Customer and tenant information must not be committed
 ## Prohibited public data
 
 Do not place any of the following in source, tests, Markdown, screenshots, workflow
-artifacts, PR descriptions, logs, or analytics:
+artifacts, PR descriptions, or logs:
 
 - a real Confluence tenant hostname or subdomain prefix;
 - a customer page title, page ID, cloud ID, space identifier, or macro local ID;
@@ -34,9 +34,10 @@ tenant/page URL or screenshot path containing customer details.
 ## Logging and analytics
 
 New or modified runtime code may record stable event names, outcome/error codes,
-format/version labels, duration buckets, and size buckets. It must not record the
-document, compressed bytes, local ID, tenant identity, shape data, complete context,
-or raw error message.
+format/version labels, duration buckets, size buckets, and the `client_domain`
+tenant prefix derived from Forge context, matching `conf-app`. It must not record the
+document, compressed bytes, local ID, shape data, complete context, or raw error
+message. Real tenant identifiers remain prohibited in logs and public artifacts.
 
 Before committing, inspect every changed and untracked public file. A clean secret
 scan does not replace review for page titles, diagram text, or screenshots.
