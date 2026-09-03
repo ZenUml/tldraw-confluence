@@ -80,9 +80,9 @@ No replacement Forge app or Marketplace listing may be created.
 
 ## Production release behavior
 
-The release workflow retains the explicit production-release enable switch and all
-general release-safety controls: exact-SHA staging provenance, freshness, release
-lineage, protected production review, production fixture, PVT, and UI evidence.
+The release workflow retains the `conf-app` authorization model: main creates a
+SHA-pinned draft after staging, explicit publication authorizes production, and PVT
+plus UI evidence validate the deployed result.
 
 It no longer reads or checks a separate brand-approval variable. Instead, repository
 validation asserts the fixed public name in `manifest.yml`. Production already runs
@@ -90,11 +90,9 @@ the complete repository validation contract against the release tag before deplo
 so a manifest naming regression fails the same exact-SHA release validation as any
 other repository contract violation.
 
-Marketplace naming is verified operationally before the production-release enable
-switch may be turned on. It is not represented by another mutable boolean, custom
-attestation, Marketplace credential, or page-scraping step in CI. The normal release
-evidence and immutable-provenance work remains required independently; this design
-does not weaken or replace it.
+Marketplace naming is verified operationally. It is not represented by another
+mutable boolean, custom attestation, Marketplace credential, or page-scraping step
+in CI.
 
 ## Delivery order and session isolation
 

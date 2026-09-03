@@ -61,3 +61,29 @@ jobs:
     # can supply it, and this job runs solely on a default-branch push, so the pull
     # request check stays credential-free.
     secrets: inherit
+
+  draft-release:
+    name: "Draft: Whiteboard"
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    needs: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Export release version
+        shell: bash
+        run: echo "version=$(date -u +'%Y.%m.%d%H%M')" >> "$GITHUB_ENV"
+
+      - name: Create release draft
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ env.version }}-tldraw
+          name: v${{ env.version }}-tldraw
+          commit: ${{ github.sha }}
+          body: "This is a draft release for the Whiteboard app."
+          draft: true

@@ -230,11 +230,11 @@ Deliverables:
   `forge-tunnel`, `release-app`, PVT, and `spot-check`;
 - a recorded table of ported, validated, deferred, and skipped items.
 
-The `release-app` and Whiteboard PVT control contracts land fail-closed in WP1 so the
-lifecycle and skill boundaries already match `conf-app`; their live execution remains
-blocked until the staging/production fixture, immutable evidence, build identity,
-and an authoritative last-successful-production SHA record exist. `check-version`
-and `health-check` land only after their build metadata and analytics signals exist.
+The `release-app` and Whiteboard PVT contracts use the `conf-app` lifecycle: main
+creates the SHA-pinned draft after staging, explicit publication starts production,
+and PVT follows deployment. Their live execution remains blocked until the approved
+fixture and build identity exist. `check-version` and `health-check` land only after
+their build metadata and analytics signals exist.
 
 ### WP2 — Data safety and behavioral baseline
 

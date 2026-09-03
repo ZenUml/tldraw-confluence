@@ -29,5 +29,5 @@ Do not mark a UI assertion PASS without a screenshot, snapshot, or network/resol
 
 ## Merge prerequisites
 
-- [ ] `staging-tldraw`, `staging-tldraw-release`, and `production-tldraw` are protected as documented
+- [ ] `staging-tldraw` and `production-tldraw` are configured as documented
 - [ ] `main` requires the authoritative `Build and Unit Test` check

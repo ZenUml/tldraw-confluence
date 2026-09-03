@@ -23,31 +23,29 @@ describe('Whiteboard release skill contracts', () => {
     const release = read('.claude/skills/release-app/SKILL.md');
 
     expect(release).toContain('ZenUml/tldraw-confluence');
-    expect(release).toContain('TLDRAW_PRODUCTION_RELEASE_ENABLED');
-    expect(release).toContain('BLOCKED — production release prerequisites are not enabled');
-    expect(release).toContain('latest successful protected production deployment');
-    expect(release).toContain('signed SHA ledger');
-    expect(release).toContain('Never delete or recreate a release or tag');
+    expect(release).toContain('successful main workflow creates a');
+    expect(release).toContain('SHA-pinned draft automatically');
+    expect(release).toContain('Draft creation is automatic');
+    expect(release).toContain('does not require a second environment');
     expect(release).toContain('explicit confirmation');
-    expect(release).toContain('second independent authorization');
-    expect(release).toContain('Publication never authorizes');
     expect(release).toContain('vYYYY.MM.DDHHMM-tldraw');
     expect(release).toContain('exact commit SHA');
-    expect(release).toContain('within the last 24 hours');
-    expect(release).toContain('previous published `-tldraw` release SHA');
-    expect(release).toContain('separately designed and authorized rollback path');
+    expect(release).toContain('less than 24 hours old');
+    expect(release).toContain('previous published `-tldraw` tag');
+    expect(release).toContain('require forward ancestry');
     expect(release).toContain('--json tagName,isDraft');
     expect(release).toContain('--json tagName,isDraft,isPrerelease,targetCommitish,body,url');
-    expect(release).toContain('not GitHub release `createdAt`');
     expect(release).toContain('workflowName == `Release`');
     expect(release).toContain('event == `release`');
     expect(release).toContain('publishedAt');
     expect(release).toContain('createdAt');
+    expect(release).not.toMatch(/attest|signed SHA ledger|immutable releases/iu);
+    expect(release).not.toContain('TLDRAW_PRODUCTION_RELEASE_ENABLED');
     expectInOrder(release, [
-      '## 1. Select the exact staged draft',
+      '## 1. Select the main-generated draft',
       '## 2. Establish the release delta and notes',
       '## 3. Confirm and publish',
-      '## 4. Watch the exact production deploy',
+      '## 4. Watch the production deploy',
       '## 5. Run PVT',
       '## 6. Run the delta-driven spot check',
     ]);
