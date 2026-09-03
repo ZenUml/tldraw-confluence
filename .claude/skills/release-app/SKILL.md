@@ -1,178 +1,106 @@
 ---
 name: release-app
-description: Release the single Whiteboard Forge app in ZenUml/tldraw-confluence through its exact-SHA draft, production workflow, PVT, and delta-driven spot check. Use only for an explicit production release request.
+description: Release the single Whiteboard Forge app in ZenUml/tldraw-confluence through its main-generated draft, production workflow, PVT, and delta-driven spot check. Use only for an explicit production release request.
 ---
 
 # Release Whiteboard App
 
-Promote one staged Whiteboard commit through the same lifecycle boundaries used by
-`conf-app`: SHA-pinned draft, release notes, explicit publication, production deploy,
-PVT, and a spot check derived from the release delta. This repository has one app;
-there is no product selection, tier ordering, or adjacent release.
+Use the same authorization model as `conf-app`: a successful main workflow creates a
+SHA-pinned draft automatically, explicit publication authorizes production, the
+release workflow deploys it, then PVT and the delta-driven spot check validate it.
+This repository has one app, so there is no product selection or variant ordering.
 
-## Authorization and current gate
+## Authorization
 
-Publishing a GitHub release is the first production authorization boundary. Never
-infer that authority from a merge, a staging request, a PR approval, or a request to
-inspect release readiness. Ask for explicit confirmation immediately before
-publication. The required reviewer on the protected `production-tldraw` environment
-is a second independent authorization. Publication never authorizes this agent to
-approve, bypass, weaken, or impersonate that environment review.
+Publishing the GitHub release is the production authorization boundary. Never infer
+that authority from a merge, staging request, PR approval, or readiness inspection.
+Ask for explicit confirmation immediately before publishing the exact draft.
 
-Before changing a draft, verify read-only:
+Draft creation is automatic and does not require a separate reviewer. Production
+starts from the release publication and does not require a second environment
+approval. The `production-tldraw` environment remains only to supply its existing
+Forge credential.
 
-    gh repo view --repo ZenUml/tldraw-confluence --json nameWithOwner,defaultBranchRef,url
-    gh variable get TLDRAW_PRODUCTION_RELEASE_ENABLED --repo ZenUml/tldraw-confluence
-    gh api repos/ZenUml/tldraw-confluence/environments/production-tldraw
-    gh api repos/ZenUml/tldraw-confluence/immutable-releases
+## 1. Select the main-generated draft
 
-Require repository validation to enforce the fixed public manifest title
-`Whiteboard for Confluence`. Public naming has no separate approval variable.
-
-Also require the checked-in port-status record to show that the production workflow,
-signed staging-evidence path, approved production fixture, visible build identity,
-and Whiteboard PVT procedure are ready. GitHub immutable releases must be enabled.
-The workflow must identify the latest successful protected production deployment,
-verify its signed SHA ledger, and require that SHA to be an ancestor of the candidate.
-The first production release may have no previous successful deployment; it is the
-only bootstrap case and must create the first signed ledger after Forge deploy.
-
-Do not require a production PVT result before the first production deployment: PVT
-is the mandatory immediate post-deploy gate in Step 5. If the readiness prerequisites
-or repository release switch are not enabled, report:
-
-    BLOCKED — production release prerequisites are not enabled
-
-Then stop before editing a draft, publishing, rerunning CI, changing variables or
-environments, or invoking a deploy command. Never weaken or set a gate from this
-skill.
-
-The remaining sections define the enabled flow once those prerequisites are closed.
-
-## 1. Select the exact staged draft
-
-List recent releases and choose only a draft whose tag matches
+List recent releases and select the newest usable draft matching
 `vYYYY.MM.DDHHMM-tldraw`:
 
     gh release list --repo ZenUml/tldraw-confluence --limit 30 \
       --json tagName,isDraft
 
-For the selected draft, fetch its exact metadata:
+Read its exact metadata:
 
     gh release view TAG --repo ZenUml/tldraw-confluence \
       --json tagName,isDraft,isPrerelease,targetCommitish,body,url,publishedAt
 
-Derive draft freshness from the UTC timestamp required in the tag by the protected
-draft-workflow contract, not GitHub release `createdAt` ([GitHub defines that field
-as the release commit
-date](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28)).
-Require the tag timestamp to be within the last 24 hours at selection time. Require
-`targetCommitish` to resolve to one exact commit SHA on `main`. Read the referenced
-`Build, Test and Stage` push run and prove that this same SHA passed both `Build and
-Unit Test` and `Deploy to Forge Staging`, completed before the tag was generated, and
-is also within the last 24 hours. Require the release body to begin with the staging
-run ID, approved evidence hash, and signed staging-evidence attestation digest. Never
-use a draft targeting a movable
-branch, an earlier green SHA, or an unverified rerun.
+Require the draft to be less than 24 hours old from its UTC tag timestamp. Require
+`targetCommitish` to resolve to an exact commit SHA on `main`, and require the matching
+`Build, Test and Stage` main-push run to have passed `Build and Unit Test`, `Deploy to
+Forge Staging`, and `Draft: Whiteboard`. Never publish a draft targeting a movable
+branch or an earlier main SHA.
 
-Resolve the previous published `-tldraw` release SHA. When one exists, require it to
-be an ancestor of the selected draft SHA with `git merge-base --is-ancestor`. This
-normal release path is forward-only. An older or divergent commit requires a
-separately designed and authorized rollback path; never publish it through this
-skill by treating it as a normal release.
-
-If there is no usable draft, report `BLOCKED — no verified staged draft`. Do not push
-a synthetic commit, dispatch staging, create a replacement draft, or select another
-release. Never delete or recreate a release or tag to bypass a failed gate.
+If no usable draft exists, dispatch `Build, Test and Stage` on `main` only when its
+workflow supports that trigger; otherwise report `BLOCKED — no current main-generated
+draft`. Never create or move a tag by hand.
 
 ## 2. Establish the release delta and notes
 
-Resolve the previous published `-tldraw` tag and compute one commit delta from it to
-the selected draft SHA. Read unclear diffs. Classify every commit as:
+Resolve the previous published `-tldraw` tag. If one exists, compute the commit delta
+from that tag to the draft SHA and require forward ancestry. For the first GitHub
+release, review the currently shipping change set instead. Classify commits as:
 
 - `behavioral` — reachable user behavior;
 - `instrumentation` — analytics or diagnostics only;
 - `infra/test/docs` — no shipped behavior.
 
-Use that same classification for release notes and the later spot-check plan. Compose
-concise user-facing notes locally. Preserve the machine-readable provenance header
-as the first two lines, add a blank line, then add `## Changes` and the delta-derived
-notes. Never put a tenant, page, board body, credential, or private evidence location
-in the public release body.
-
-The `## Changes` section is mandatory. If the delta has no behavioral changes, write
-explicit privacy-safe maintenance text such as `- Maintenance release; no user-facing
-changes.` rather than leaving the section empty.
-
-Do not update the draft yet.
+Replace the generated placeholder with concise, privacy-safe notes under `## Changes`.
+Do not include tenant, page, board, credential, or private evidence details. Do not
+update the draft before the publication confirmation.
 
 ## 3. Confirm and publish
 
-Show the user the tag, exact SHA, prior tag, staging run, evidence status, release
-notes, production gates, and planned PVT/spot-check assertions. Ask for explicit
-confirmation to update and publish this exact draft.
+Show the user:
 
-After confirmation, update the body and publish the same draft. Re-read the release,
-record its `publishedAt`, and verify that it is stable, not a draft or prerelease,
-still uses the approved tag, and still resolves to the selected SHA. Publication
-starts the workflow but does not satisfy or authorize the protected environment's
-independent reviewer gate. Do not create a new tag or move an existing tag.
-The staging completion, tag timestamp, and publication must each still be less than
-24 hours old when that reviewer allows the deploy job to proceed. The workflow
-carries their earliest expiry across the approval wait; after it passes, the job
-fails closed and a fresh staged draft is required.
+- exact draft tag and SHA;
+- previous published tag, if any;
+- successful main run and staging evidence status;
+- proposed release notes;
+- planned production PVT and delta-driven assertions.
 
-## 4. Watch the exact production deploy
+Ask for explicit confirmation to update and publish this exact draft. After the user
+confirms, update the same draft body and publish it. Re-read it and verify that it is
+stable, no longer a draft or prerelease, and still resolves to the approved SHA. Do
+not create a replacement release or move its tag.
 
-Find the workflow run caused by that publication using the `Release` workflow, the
-`release` event, and the exact tag/ref:
+## 4. Watch the production deploy
+
+Find the `Release` workflow run caused by that publication using the release event and
+exact tag:
 
     gh run list --repo ZenUml/tldraw-confluence --workflow "Release" \
       --event release --branch "TAG" --limit 20 \
       --json databaseId,workflowName,event,headBranch,headSha,createdAt,status,conclusion,url
 
-Require workflowName == `Release` and event == `release`, plus the exact tag/ref,
-`headSha` equal to the selected SHA, and the run `createdAt` at or after the release
-`publishedAt`. Do not select only by SHA: multiple releases can share one commit. If
-pending, watch it, then re-read the run and jobs; never trust only a watch command's
-exit code.
-
-Treat the production deploy job independently from later validation. When the deploy
-job succeeds, proceed immediately to PVT. If it fails, capture the failed logs,
-report the category and run URL, and stop. The release may already be public; never
-unpublish, roll back, or redeploy automatically.
-
-After the independent environment approval and immediately before deploy, require
-the workflow to prove again that this is the unique latest stable Whiteboard release
-and that its unambiguous predecessor is an ancestor. A newer or same-time ambiguous
-release blocks the older job instead of allowing an out-of-order deployment.
+Require workflowName == `Release`, event == `release`, the exact tag/ref, and the
+approved SHA. Watch that exact run, then re-read its job result. A deploy failure stops
+the release session; never roll back, unpublish, or redeploy automatically.
 
 ## 5. Run PVT
 
-Invoke the project `pvt` skill as soon as the production deploy job is green. PVT is
-mandatory. Require its approved fixture, expected release tag, and UI evidence. A
-BLOCKED or FAIL result stops this release session and must not be described as a
+Invoke the project `pvt` skill immediately after production deploy succeeds. Require
+the approved synthetic fixture, expected release tag, visible build identity,
+edit/save/reload behavior, and UI evidence. A BLOCKED or FAIL result is not a
 successful release validation.
 
 ## 6. Run the delta-driven spot check
 
-Pass the Step 2 commit classification to `spot-check`. Before opening a browser,
-write at least one observable assertion for every reachable `behavioral` commit and
-either an assertion or explicit skip reason for each `instrumentation` commit. Pure
-`infra/test/docs` deltas may report no focused UI assertions with a concrete reason.
-
-Run only the smallest set that exercises what shipped. Each UI PASS requires actual
-evidence. If PVT or a focused assertion fails, stop and report; do not alter the plan
-after observing the result and do not roll back automatically.
+Pass the Step 2 classification to `spot-check`. Exercise each behavioral commit and
+either exercise or explicitly skip each instrumentation commit. Pure infra/test/docs
+changes may have no focused UI assertion when the reason is recorded. Never rewrite
+the plan after observing a failure.
 
 ## Report
 
-Always report:
-
-- tag and exact SHA;
-- release delta and notes status;
-- production workflow and deploy-job result;
-- PVT result with evidence classification;
-- delta-driven spot-check results;
-- any blocker or mutation performed;
-- rollback: not performed.
+Report the tag and exact SHA, release notes, production workflow result, PVT result,
+delta-driven spot-check result, any blocker or mutation, and `rollback: not performed`.

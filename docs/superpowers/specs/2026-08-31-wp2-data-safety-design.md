@@ -629,7 +629,7 @@ Before promotion:
 - legacy KVS visibility, conditional first-create/conflict, interrupted journal recovery, and the prepared rollback artifact must pass on the original non-production app;
 - build identity must match the staged commit;
 - the first staging deploy output must classify the manifest/version impact; production remains blocked until that observed result is reviewed because package declarations do not prove Forge deployment classification;
-- branding, fixture, immutable-evidence, and production approvals from WP1 remain enforced;
+- public Whiteboard naming, the approved fixture, and the `conf-app`-aligned publication authorization remain enforced;
 - the cached-client compatibility behavior and removal criterion appear in release notes;
 - production PVT and delta spot-check remain separate from CI.
 

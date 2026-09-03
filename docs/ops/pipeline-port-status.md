@@ -20,9 +20,7 @@ Status vocabulary:
 | Visible staging build identity | LIVE | Approved synthetic fixture displayed `unreleased@6f74dc0 · SDK 1.26.2 · staging`; private iframe screenshot SHA-256 `62ed2063371cf08c63e3f1f814eb6fcf1709aa8a7318f0dd130baa729331dab1` |
 | Saved-document reload | LIVE | The exact staging build automatically rendered the previously saved stroke, accepted a second controlled stroke, and rendered exactly two shapes with the toolbar present in a newly opened view; no fail-closed error appeared. |
 | Approved production PVT fixture | LOCAL | The existing team-owned non-production Confluence fixture contains synthetic-only Whiteboard instances and is reachable through the authorized browser. Production identity/edit/reload evidence can exist only after the first production deploy. |
-| Signed staging UI provenance | LOCAL | The protected draft workflow creates a canonical evidence statement and signs it with `actions/attest@v4`; production reconstructs and verifies its digest and signer. Live proof requires the next exact-SHA draft run. |
-| Production lineage authority | LOCAL | Repository immutable releases are enabled. The release workflow verifies the latest successful protected production deployment's signed SHA ledger and ancestry; the first release is the sole no-ledger bootstrap and creates that ledger after deploy. |
-| Production switch | BLOCKED | `TLDRAW_PRODUCTION_RELEASE_ENABLED` remains unset until the final release-candidate SHA repeats protected staging and exact-build UI verification. |
+| Release authorization parity | LOCAL | Main staging creates the SHA-pinned draft automatically; publishing it is the production authorization, matching `conf-app`. No signature or reviewer gate is inserted around draft creation or production. |
 
 | Item | Decision | Status | Validation/evidence |
 |---|---|---:|---|
@@ -33,17 +31,16 @@ Status vocabulary:
 | Project guidance | Adapt | LOCAL | Symlink, stale-text, privacy, all checked local-link, and whitespace checks pass; an unreferenced legacy PNG with an embedded non-placeholder tenant hostname was removed |
 | PR CI | Adapt | LIVE | PR #28's exact head passed `Build and Unit Test`; merge SHA `6f74dc0468ad233ba33ecfbf8ac2251c3f9ee376` then passed the main job and protected staging deploy in run `33702738244` |
 | Forge staging | Adapt | LIVE | Exact-SHA deployment, visible build identity, prior-save render, controlled edit, and post-save reload all passed on the approved synthetic fixture |
-| GitHub protection configuration | Adapt | LIVE | Remote audit confirms branch-policy-gated staging plus required-reviewer gates on draft preparation and production; immutable releases are enabled |
-| Draft release | Adapt | STRUCTURAL ONLY | Main-run, evidence-hash, freshness, required delta-notes, stable-release, and reviewer gates reviewed; no draft created |
-| Production release | Adapt | STRUCTURAL ONLY | Public naming is fixed as Whiteboard; the fixture, PVT procedure, immutable provenance, lineage authority, and two independent publication/environment approval gates are present, while the repository switch remains fail-closed until the final candidate passes staging |
-| Production lineage authority | Adapt | LOCAL | Repository immutable releases are enabled; signed staging evidence and signed successful-deployment ledger enforcement are implemented locally and await their protected workflow runs |
+| GitHub environment configuration | Adapt | LIVE | `staging-tldraw` protects the main-only staging credential path; `production-tldraw` supplies the production credential without adding a reviewer gate |
+| Draft release | Adapt | LOCAL | The main workflow creates one SHA-pinned Whiteboard draft automatically after staging, using the same authorization model as `conf-app` |
+| Production release | Adapt | LOCAL | Publishing the exact draft is the sole production authorization; the release workflow validates, lints, and deploys the existing Forge app, followed by PVT |
 | `validate-branch` | Adapt | LOCAL | Skill contract passes and its first locally scoped, non-deploying path, `pnpm validate`, succeeds; UI is correctly `SKIPPED — no runtime change` |
 | `forge-tunnel` | Adapt | BLOCKED | Skill schema and command contract pass; authenticated identity and environment/version discovery work, but Atlassian explicitly denies original-app install access, proving the available identity is not an app contributor |
 | `spot-check` | Adapt | LIVE | A published Marketplace 3.4.0 baseline was exercised on an approved non-production synthetic fixture: create/edit/save/reload passed, and a fresh-`localId` same-page clone produced independent persisted rendered state through edits and reloads; this does not claim the WP1 branch artifact was deployed |
 | PR lifecycle skill set | Adapt | LOCAL | Schemas and read-only GitHub discovery/help pass; all state-changing halves remain structural |
 | Dependency updates | Adapt | LOCAL | Weekly dev-tool-only Dependabot contract present; product/runtime packages are excluded in WP1 |
 | License metadata alignment | Defer | DEFERRED | `LICENSE.md` is Apache-2.0 while existing package metadata says MIT/ISC; owner/legal confirmation required before changing either |
-| `release-app` | Adapt | LOCAL | Single-app fresh exact-SHA draft → signed evidence → explicit publish → independent production review → deploy → signed ledger → PVT → delta spot-check contract passes locally; exact-SHA staging reload is now LIVE |
+| `release-app` | Adapt | LOCAL | Single-app main-generated exact-SHA draft → explicit publish → deploy → PVT → delta spot-check, matching `conf-app` without extra signing or reviewer gates |
 | Whiteboard smoke/PVT | Adapt | LOCAL | The approved team-owned synthetic fixture and authorized browser are reachable; production identity/edit/reload evidence must run immediately after the first production deploy |
 | `check-version` | Adapt | LIVE | The approved staging iframe visibly reported the expected full-SHA-correlated `unreleased@6f74dc0 · SDK 1.26.2 · staging` identity |
 | `health-check` | Defer | DEFERRED | Needs deployed lifecycle events and a baseline |
@@ -58,11 +55,10 @@ The target lifecycle deliberately keeps the same shape as the reference project:
 
 The single Whiteboard app removes only product matrices, canary/soak ordering,
 Cloudflare publication, manifest variant rewrites, and tenant-specific recipes.
-Staging remains main-only. Draft creation requires reviewed UI evidence, and production
-requires immutable signed staging evidence, an approved fixture, visible build
-identity, an independently reviewed environment, immediate PVT, and a signed ledger
-for the latest successful protected production deployment. The first production
-release is the sole no-ledger bootstrap and creates that ledger after deploy.
+Staging remains main-only. The successful main workflow creates its SHA-pinned draft
+automatically; explicit publication authorizes the production workflow; PVT and the
+delta-driven spot check follow deploy. No Whiteboard-only signature or reviewer gate
+is inserted into that `conf-app` lifecycle.
 
 ## Package-resolution evidence
 
@@ -120,9 +116,8 @@ and the measurement is what the workflows are built on.
 - pinned offline Forge manifest validation: PASS with zero errors and six existing warnings;
 - Playwright collection: PASS locally and under `CI=1`, one sentinel in one file;
 - all ten repository skills pass the bundled `skill-creator` structural validator;
-- all four workflow files plus `manifest.yml` parse as YAML, and all 16 checked local Markdown links resolve;
+- all three workflow files plus `manifest.yml` parse as YAML, and checked local Markdown links resolve;
 - read-only GitHub repository/PR/help discovery: PASS; no workflow is registered on `main` before this branch lands;
-- remote immutable releases: enabled; signed production-SHA ledger enforcement is implemented locally and becomes LIVE after the first protected production deploy;
 - Forge tunnel help: PASS; authenticated identity and environment/version discovery work, original-app install discovery is denied for lack of contributor access, and port 3000 is free;
 - guarded runtime diff against `a3393e1`: empty;
 - `git diff --check`: PASS;

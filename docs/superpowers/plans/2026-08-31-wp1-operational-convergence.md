@@ -1,5 +1,11 @@
 # WP1 Operational Convergence Implementation Plan
 
+> Release-authorization note (2026-09-03): the user superseded this plan's draft
+> evidence reviewer, production reviewer, signature/lineage, and enable-switch
+> proposals. Current operation follows `docs/ops/forge-release.md` and matches
+> `conf-app`: automatic SHA-pinned draft after main staging, then explicit publication
+> as the production authorization.
+
 > This plan is the manual fallback for the unavailable `writing-plans` skill. Execute it task by task on a feature branch; do not combine WP2 persistence or SDK work with it.
 
 **Goal:** Give `ZenUml/tldraw-confluence` a deterministic toolchain, honest validation contract, project guidance, adapted agent skills, and gated CI/staging/release workflows modelled on `conf-app` without changing product runtime behavior.
