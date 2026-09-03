@@ -198,27 +198,27 @@ The existing seeded `defaultDocument` is not an empty-board factory and is remov
 
 The exact path from storage to editor is deliberately observable:
 
-1. Decode and validate the retrieved structured value into an immutable logical `original`; compute its codec and editor fingerprints.
+1. Decode and validate the retrieved structured value into an immutable logical `original`; compute its codec, editor, and mount fingerprints.
 2. Create a structural deep clone without merge helpers or prototype-bearing dictionaries. Never mutate `original`.
 3. Mount that clone with the editor container hidden and pointer-disabled. The v1 editor still runs its bundled migration.
-4. In `onMount`, revalidate `app.document` and compare its editor fingerprint with `original`. Only an exact persistent-semantics match makes the editor visible and arms persistence callbacks.
+4. In `onMount`, revalidate `app.document` and compare its mount fingerprint with `original`. Only an exact persistent drawing-semantics match makes the editor visible and arms persistence callbacks.
 5. Any migration/validation difference unmounts the editor as `editor_migration_changed_persistent_data`, offers recovery download, and performs zero document writes.
 6. Initial `onPersist` calls and later callbacks equal to the last confirmed editor fingerprint are ignored.
-7. After an explicit edit or completed resize, clone the current editor document, attach the current valid viewport height without mutating `app.document`, validate it again, then enqueue that immutable snapshot.
+7. After an explicit edit or completed resize, clone the current editor document, attach the current valid viewport height without mutating `app.document`, validate it again, then enqueue that immutable snapshot. The SDK strips this app-owned top-level `viewport` field while mounting, so mount comparison ignores only this field in addition to the audited ephemeral page-state fields.
 
-The SDK-cleared page-state fields are the only mount differences ignored by the editor fingerprint. They remain in `original` for codec round-trip/recovery purposes, but a later explicit user save may persist the editor's current ephemeral state. `brush` is not in this exception because the audited v1.26.2 cleanup path does not clear it. No unknown field, asset, graph repair, label rewrite, geometry change, or version change is ignored.
+The SDK-cleared page-state fields and the app-owned top-level viewport are the only mount differences ignored by the mount fingerprint. They remain in `original` for codec round-trip/recovery purposes, but a later explicit user save may persist the editor's current ephemeral state and current viewport height. `brush` is not in this exception because the audited v1.26.2 cleanup path does not clear it. No unknown field, asset, graph repair, label rewrite, geometry change, or version change is ignored.
 
 ## 5. Fingerprints and loss detection
 
-WP2 defines two canonical SHA-256 fingerprints.
+WP2 defines three canonical SHA-256 fingerprints.
 
 The **codec fingerprint** includes root identity/name/version, page membership and insertion order, complete supported shape and binding semantics, complete page states, camera, optional viewport, and the fact that assets are empty.
 
-The **editor fingerprint** includes the same persistent drawing semantics but removes the ephemeral page-state fields listed in section 4.3. It gates mount noise and behavioral comparisons. The DOM hashes captured in the existing Atlassian baseline are separate, viewport-only UI evidence and are not substitutes for either document fingerprint.
+The **editor fingerprint** includes the same persistent drawing semantics and viewport height but removes the ephemeral page-state fields listed in section 4.3. It gates save coalescing and behavioral comparisons. The separate **mount fingerprint** additionally removes the app-owned top-level viewport because the tldraw SDK does not retain it in `app.document`; every drawing, page, camera, brush, shape, binding, and asset semantic remains covered. The DOM hashes captured in the existing Atlassian baseline are separate UI evidence and are not substitutes for these document fingerprints.
 
 Canonicalization is schema-directed rather than a recursive object-key sort. Field order is fixed by the schema, arrays preserve order, and every record map is encoded as ordered `[key, value]` entries in original insertion order. This matters because v1 selects the initial page from `Object.keys(document.pages)[0]`, and insertion order can also break child-index ties. It rejects non-finite numbers and normalizes negative zero to zero. WP2 uses zero numeric tolerance because this is a v1-to-v1 lossless codec. Any non-zero geometry tolerance belongs to the WP5 modern-SDK design.
 
-Pure decode/encode must preserve the codec fingerprint exactly. A no-edit mount must preserve the editor fingerprint and perform zero writes. After a specified edit, the expected editor fingerprint (source semantics plus the specified delta) must survive save and reload; the pre-edit and post-edit codec fingerprints are expected to differ.
+Pure decode/encode must preserve the codec fingerprint exactly. A no-edit mount must preserve the mount fingerprint and perform zero writes. After a specified edit, the expected editor fingerprint (source semantics plus the specified delta) must survive save and reload; the pre-edit and post-edit codec fingerprints are expected to differ.
 
 Fingerprints may appear in synthetic test assertions and privacy-safe evidence. They are not sent to analytics or logs for real boards because a stable content-derived hash is still customer-content metadata.
 

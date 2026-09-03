@@ -129,10 +129,10 @@ describe('Whiteboard legacy codec', () => {
     });
   });
 
-  it('accepts an exact empty v15.5 raw document and computes both fingerprints', async () => {
+  it('accepts an exact empty v15.5 raw document and computes all fingerprints', async () => {
     const document = emptyDocument();
     const canonicalInputs = [];
-    const hashes = ['a'.repeat(64), 'b'.repeat(64)];
+    const hashes = ['a'.repeat(64), 'b'.repeat(64), 'c'.repeat(64)];
 
     await expect(decodeLegacyValue(document, {
       sha256Hex: async (canonicalUtf8) => {
@@ -145,10 +145,12 @@ describe('Whiteboard legacy codec', () => {
       fingerprints: {
         codec: 'a'.repeat(64),
         editor: 'b'.repeat(64),
+        mount: 'c'.repeat(64),
       },
     });
-    expect(canonicalInputs).toHaveLength(2);
+    expect(canonicalInputs).toHaveLength(3);
     expect(canonicalInputs[0]).not.toEqual(canonicalInputs[1]);
+    expect(canonicalInputs[1]).not.toEqual(canonicalInputs[2]);
   });
 
   it('returns an immutable structural clone instead of the mutable storage value', async () => {
@@ -184,6 +186,7 @@ describe('Whiteboard legacy codec', () => {
       fingerprints: {
         codec: 'c'.repeat(64),
         editor: 'c'.repeat(64),
+        mount: 'c'.repeat(64),
       },
     });
   });
@@ -229,6 +232,19 @@ describe('Whiteboard legacy codec', () => {
     expect(result.kind).toBe('legacy-raw');
     expect(canonicalizeLegacyDocument(result.document, 'editor')).not.toEqual(
       canonicalizeLegacyDocument(withoutBrush, 'editor'),
+    );
+  });
+
+  it('ignores the app-owned viewport only in the mount fingerprint', () => {
+    const stored = emptyDocument();
+    stored.viewport = { height: 640 };
+    const editorDocument = emptyDocument();
+
+    expect(canonicalizeLegacyDocument(stored, 'mount')).toEqual(
+      canonicalizeLegacyDocument(editorDocument, 'mount'),
+    );
+    expect(canonicalizeLegacyDocument(stored, 'editor')).not.toEqual(
+      canonicalizeLegacyDocument(editorDocument, 'editor'),
     );
   });
 

@@ -14,7 +14,11 @@ export function createDevelopmentFixtureInvoke(fixtureName: string) {
   if (!import.meta.env.DEV || !ALLOWED_FIXTURES.has(fixtureName)) {
     throw new Error('Unsupported development fixture');
   }
-  let stored: unknown = fixtureName === 'legacy-raw' ? createEmptyLegacyDocument() : undefined;
+  const fixtureStorageKey = `whiteboard-development-fixture:${fixtureName}`;
+  const persistedFixtureValue = sessionStorage.getItem(fixtureStorageKey);
+  let stored: unknown = persistedFixtureValue === null
+    ? fixtureName === 'legacy-raw' ? createEmptyLegacyDocument() : undefined
+    : JSON.parse(persistedFixtureValue);
   let revision = 0;
   let token = 'm';
   const counts: Record<string, number> = {};
@@ -41,6 +45,7 @@ export function createDevelopmentFixtureInvoke(fixtureName: string) {
       const decoded = await decodeLegacyValue(envelope, { sha256Hex });
       if (decoded.kind !== 'legacy-compressed') return { kind: 'invalid', errorCode: 'save_validation_failed' };
       stored = envelope;
+      sessionStorage.setItem(fixtureStorageKey, JSON.stringify(envelope));
       revision += 1;
       token = `c:${await sha256Hex((envelope as { compressedJson: string }).compressedJson)}`;
       return { kind: 'saved', revision, token };
