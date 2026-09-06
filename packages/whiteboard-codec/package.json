@@ -21,6 +21,6 @@
     "lzutf8": "0.6.3"
   },
   "devDependencies": {
-    "typescript": "4.9.3"
+    "typescript": "7.0.2"
   }
 }
