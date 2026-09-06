@@ -44,7 +44,7 @@
   "devDependencies": {
     "@eslint/js": "9.21.0",
     "@forge/cli": "12.20.1",
-    "@forge/manifest": "12.7.0",
+    "@forge/manifest": "12.9.0",
     "eslint": "9.21.0",
     "eslint-plugin-react-hooks": "5.2.0",
     "globals": "15.14.0",
